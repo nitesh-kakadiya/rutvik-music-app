@@ -25,7 +25,7 @@ export default function Home({
                             track={track}
                             isActive={currentId === track.id}
                             inPlaylist={inPlaylist}
-                            onPlay={() => onPlay?.(track.id)}
+                            onPlay={() => onPlay?.(track.id, true)}
                             onAddToPlaylist={() => onAddToPlaylist?.(track)}
                             onRemoveFromPlaylist={() => onRemoveFromPlaylist?.(track.id)}
                         />

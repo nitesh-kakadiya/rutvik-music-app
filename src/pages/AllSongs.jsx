@@ -12,7 +12,7 @@ export default function AllSongs({ tracks, currentId, onPlay, onAddToPlaylist, o
                         key={track.id}
                         track={track}
                         isActive={currentId === track.id}
-                        onPlay={() => onPlay(track.id)}
+                        onPlay={() => onPlay(track.id, true)}
                         onAddToPlaylist={() => onAddToPlaylist(track)}
                         onRemoveFromPlaylist={() => onRemoveFromPlaylist(track.id)}
                         playlist={playlist}
