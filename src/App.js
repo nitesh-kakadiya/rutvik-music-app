@@ -158,7 +158,7 @@ export default function App() {
               }
             />
             <Route
-              path="/my-playlist"
+              path="/myplaylist"
               element={
                 <MyPlaylist
                   playlist={playlist}
