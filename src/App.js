@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 
@@ -40,6 +39,9 @@ export default function App() {
     }
   });
 
+  // normal | repeat-one | shuffle | repeat-all
+  const [mode, setMode] = useState("normal");
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,32 +57,41 @@ export default function App() {
   const playById = useCallback((id, autoplay = false) => {
     const idx = TRACKS.findIndex((t) => t.id === id);
     if (idx !== -1) {
-      if (autoplay) {
-        window._autoplayFlag = true; // 👈 turant set karo
-      }
-      setCurrentIndex((prev) => {
-        // agar same track dobara click hua, reload karne ke liye null set karo
-        if (prev === idx) {
-          return null;
-        }
-        return idx;
-      });
-      // fir turant next tick me actual idx set
-      setTimeout(() => {
-        setCurrentIndex(idx);
-      }, 0);
+      if (autoplay) window._autoplayFlag = true;
+      setCurrentIndex((prev) => (prev === idx ? null : idx));
+      setTimeout(() => setCurrentIndex(idx), 0);
     }
   }, []);
 
   const playNext = useCallback(() => {
-    window._autoplayFlag = true;  // ✅ force autoplay
-    setCurrentIndex((prev) => (prev + 1) % TRACKS.length);
-  }, []);
+    window._autoplayFlag = true;
+    if (mode === "shuffle") {
+      const random = Math.floor(Math.random() * TRACKS.length);
+      setCurrentIndex(random);
+    } else {
+      setCurrentIndex((prev) => (prev + 1) % TRACKS.length);
+    }
+  }, [mode]);
 
   const playPrev = useCallback(() => {
-    window._autoplayFlag = true;  // ✅ force autoplay
-    setCurrentIndex((prev) => (prev - 1 + TRACKS.length) % TRACKS.length);
-  }, []);
+    window._autoplayFlag = true;
+    if (mode === "shuffle") {
+      const random = Math.floor(Math.random() * TRACKS.length);
+      setCurrentIndex(random);
+    } else {
+      setCurrentIndex((prev) => (prev - 1 + TRACKS.length) % TRACKS.length);
+    }
+  }, [mode]);
+
+  // on track end
+  const handleEnded = useCallback(() => {
+    // repeat-one handled inside MusicPlayer
+    if (mode === "repeat-all" || mode === "shuffle") {
+      playNext();
+    } else {
+      // normal: stop
+    }
+  }, [mode, playNext]);
 
   // playlist
   const addToPlaylist = useCallback((track) => {
@@ -100,7 +111,6 @@ export default function App() {
 
   return (
     <div className="app">
-      app.js
       <Navbar
         onSearch={(q) => navigate(`/search?q=${encodeURIComponent(q)}`)}
       />
@@ -164,7 +174,7 @@ export default function App() {
               element={
                 <MyPlaylist
                   playlist={playlist}
-                  onPlay={(t) => playById(t.id, true)} // ✅ autoplay flag pass karo
+                  onPlay={(t) => playById(t.id, true)}
                   onRemove={(i) => removeFromPlaylist(i)}
                 />
               }
@@ -179,7 +189,9 @@ export default function App() {
               track={currentTrack}
               onNext={playNext}
               onPrev={playPrev}
-              onEnded={playNext}
+              onEnded={handleEnded}
+              mode={mode}
+              setMode={setMode}
             />
           </div>
 
@@ -192,16 +204,12 @@ export default function App() {
             </div>
             <Playlist
               playlist={playlist}
-              onPlay={(t) => playById(t.id, true)}   // 👈 autoplay true kariyu
+              onPlay={(t) => playById(t.id, true)}
               onRemove={removeFromPlaylist}
             />
           </div>
         </aside>
       </main>
-
-      <footer className="footer">
-        Just drop any <code>.mp3</code> files into <code>src/Nitesh</code> — they’ll be auto-detected.
-      </footer>
     </div>
   );
 }

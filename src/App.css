@@ -36,7 +36,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  font: 14px/1.4 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans";
 }
 
 /* ===== Utilities ===== */
@@ -116,6 +116,53 @@ body {
   color: #fff;
 }
 
+/* extra states for player buttons */
+.btn.active {
+  background: var(--brand);
+  color: #000;
+  font-weight: 700;
+}
+
+.btn.loop-on {
+  color: var(--brand);
+}
+
+.btn.shuffle-on {
+  color: var(--brand);
+}
+
+.btn.stop {
+  color: #e74c3c;
+}
+
+/* Mode highlight colors */
+.btn.ghost.mode-normal {
+  color: red;
+  border-color: #e74c3c;
+  background: rgba(199, 48, 25, 0.174);
+}
+
+.btn.ghost.mode-repeat-one {
+  color: yellow;
+  /* red */
+  border-color: #c2c062;
+  background: rgba(231, 76, 60, 0.15);
+}
+
+.btn.ghost.mode-shuffle {
+  color: #3498db;
+  /* blue */
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.15);
+}
+
+.btn.ghost.mode-repeat-all {
+  color: #27ae60;
+  /* green */
+  border-color: #27ae60;
+  background: rgba(39, 174, 96, 0.15);
+}
+
 /* ===== App Layout ===== */
 .app {
   max-width: 1200px;
@@ -181,7 +228,7 @@ body {
   color: #fff;
 }
 
-/* SearchBar (form with class="search") */
+/* SearchBar */
 .search {
   display: flex;
   gap: 8px;
@@ -278,7 +325,7 @@ body {
   color: red !important;
 }
 
-/* ===== MusicPlayer (.player) ===== */
+/* ===== MusicPlayer ===== */
 .player .title {
   font-weight: 800;
   font-size: 16px;
@@ -314,7 +361,6 @@ body {
 }
 
 .bar::after {
-  /* subtle track shine */
   content: "";
   position: absolute;
   inset: 0;
@@ -396,7 +442,7 @@ a:hover {
   color: var(--brand-press);
 }
 
-/* ===== Scrollbar (nice on desktop) ===== */
+/* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -417,32 +463,25 @@ a:hover {
 }
 
 /* =========================
-   Responsive Media Queries
+   Responsive
    ========================= */
-
-/* 960px */
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
-    /* stack main + sidebar */
   }
 
   .navbar {
     grid-template-columns: 1fr auto;
-    /* shrink */
   }
 
   .search input {
     min-width: 120px;
-    /* narrower search bar */
   }
 }
 
-/* 768px */
 @media (max-width: 768px) {
   .navbar {
     grid-template-columns: 1fr;
-    /* stack brand, links, search */
     gap: 10px;
     text-align: center;
   }
@@ -473,7 +512,6 @@ a:hover {
   }
 }
 
-/* 480px */
 @media (max-width: 480px) {
   .app {
     padding: 8px;
@@ -522,8 +560,6 @@ a:hover {
    Universal Now Playing (Mobile Fix)
    ========================= */
 @media (max-width: 768px) {
-
-  /* Only keep first card (Now Playing) fixed bottom */
   .sidebar .card:first-child {
     position: fixed;
     bottom: 0;
@@ -537,14 +573,11 @@ a:hover {
     padding: 10px 14px;
   }
 
-  /* Hide second card (Playlist) */
   .sidebar .card:nth-child(2) {
     display: none;
   }
 
-  /* Prevent overlap with fixed player */
   .main {
     padding-bottom: 140px;
-    /* adjust based on player height */
   }
 }

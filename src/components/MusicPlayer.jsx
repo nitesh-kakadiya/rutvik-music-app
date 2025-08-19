@@ -6,6 +6,10 @@ import {
     FaPlay,
     FaPause,
     FaVolumeUp,
+    FaRedo,
+    FaRandom,
+    FaStop,
+    FaSync,
 } from "react-icons/fa";
 
 // Format seconds into m:ss
@@ -16,12 +20,20 @@ function fmt(sec) {
     return `${m}:${s}`;
 }
 
-export default function MusicPlayer({ track, onNext, onPrev, onEnded }) {
+export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setMode }) {
     const howlRef = useRef(null);
+    const modeRef = useRef(mode); // 🔁 latest mode
     const [isPlaying, setIsPlaying] = useState(false);
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
     const [volume, setVolume] = useState(0.9);
+
+    // keep modeRef updated
+    useEffect(() => {
+        modeRef.current = mode;
+        // 🔁 rebind onend whenever mode changes (applies immediately)
+        bindOnEnd();
+    }, [mode]);
 
     // Load new track
     useEffect(() => {
@@ -40,14 +52,13 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded }) {
             html5: true,
             volume,
             onload: () => setDur(h.duration() || 0),
-            onend: () => {
-                setIsPlaying(false);
-                onEnded?.();
-            },
         });
 
         howlRef.current = h;
-        // 👇 Autoplay if user clicked playlist play
+
+        // 🔁 bind onend immediately with current mode
+        bindOnEnd();
+
         if (window._autoplayFlag) {
             h.play();
             setIsPlaying(true);
@@ -70,7 +81,32 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded }) {
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [track?.id]);
+    }, [track?.id]); // only when track changes
+
+    // 🔁 helper to bind onend according to modeRef
+    const bindOnEnd = () => {
+        const h = howlRef.current;
+        if (!h) return;
+        h.off("end");
+        h.on("end", () => {
+            const currentMode = modeRef.current;
+
+            if (currentMode === "repeat-one") {
+                h.seek(0);
+                h.play();
+                setIsPlaying(true);
+                return;
+            }
+
+            setIsPlaying(false);
+
+            if (currentMode === "repeat-all" || currentMode === "shuffle") {
+                window._autoplayFlag = true;
+            }
+
+            onEnded?.();
+        });
+    };
 
     // Sync volume
     useEffect(() => {
@@ -103,12 +139,25 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded }) {
     );
 
     if (!track) return <div className="muted">No track selected.</div>;
-
     const progress = dur ? pos / dur : 0;
 
+    // Cycle modes (Normal → Repeat-One → Shuffle → Repeat-All)
+    const cycleOrder = ["normal", "repeat-one", "shuffle", "repeat-all"];
+    const cycleTo = () => {
+        const next = cycleOrder[(cycleOrder.indexOf(mode) + 1) % cycleOrder.length];
+        setMode(next);
+    };
+    const modeTitle =
+        mode === "normal"
+            ? "Normal"
+            : mode === "repeat-one"
+                ? "Repeat One"
+                : mode === "shuffle"
+                    ? "Shuffle"
+                    : "Repeat All";
+
     return (
-        <div className="player">MusicPlayer.jsx
-            {/* Track Info + Controls */}
+        <div className="player">
             <div className="row between">
                 <div>
                     <div className="title">{track.title}</div>
@@ -124,6 +173,22 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded }) {
                     <button className="btn" onClick={onNext}>
                         <FaStepForward />
                     </button>
+
+                    {/* Single cycle button */}
+                    <button
+                        className={`btn ghost mode-${mode}`}
+                        onClick={cycleTo}
+                        title={modeTitle}
+                    >
+                        {mode === "normal" && <FaStop />}
+                        {mode === "repeat-one" && (
+                            <>
+                                <FaRedo /> <span style={{ fontSize: 12, marginLeft: 4 }}>1</span>
+                            </>
+                        )}
+                        {mode === "shuffle" && <FaRandom />}
+                        {mode === "repeat-all" && <FaSync />}
+                    </button>
                 </div>
             </div>
 
@@ -137,7 +202,10 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded }) {
                         seekTo((e.clientX - r.left) / r.width);
                     }}
                 >
-                    <div className="bar-fill" style={{ width: `${progress * 100}%` }} />
+                    <div
+                        className="bar-fill"
+                        style={{ width: `${progress * 100}%` }}
+                    />
                 </div>
                 <span>{fmt(dur)}</span>
             </div>
