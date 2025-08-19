@@ -14,7 +14,7 @@ export default function Navbar({ onSearch }) {
             <nav className="links">
                 <Link to="/">Home</Link>
                 <Link to="/all-songs">All Songs</Link>
-                <Link to="/my-playlist">My Playlist</Link>
+                <Link to="/myplaylist">My Playlist</Link>
             </nav>
 
             {/* Search Bar */}
