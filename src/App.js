@@ -73,10 +73,12 @@ export default function App() {
   }, []);
 
   const playNext = useCallback(() => {
+    window._autoplayFlag = true;  // ✅ force autoplay
     setCurrentIndex((prev) => (prev + 1) % TRACKS.length);
   }, []);
 
   const playPrev = useCallback(() => {
+    window._autoplayFlag = true;  // ✅ force autoplay
     setCurrentIndex((prev) => (prev - 1 + TRACKS.length) % TRACKS.length);
   }, []);
 
