@@ -4,16 +4,23 @@ import { Link } from "react-router-dom";
 export default function SongCard({
     track,
     isActive = false,
-    inPlaylist = false,
-    onPlay,
-    onAddToPlaylist,
-    onRemoveFromPlaylist,
+    onPlay,                  // () => void        (already bound by parent)
+    onAddToPlaylist,         // () => void        (already bound by parent)
+    onRemoveFromPlaylist,    // () => void        (already bound by parent)
+    playlist = [],
+    inPlaylist,              // optional override: true/false. If undefined, auto-detect via playlist
 }) {
-    if (!track) return null; // Safety guard
+    if (!track) return null;
+
+    // Decide if this track is in playlist
+    const isInPlaylist =
+        typeof inPlaylist === "boolean"
+            ? inPlaylist
+            : Array.isArray(playlist) && playlist.some((t) => t.id === track.id);
 
     return (
-        <div className={`songcard ${isActive ? "active" : ""}`}>SongCard.jsx
-            {/* Track Info */}
+        <div className={`songcard ${isActive ? "active" : ""}`}>
+            {/* Info */}
             <div className="info">
                 <div className="title">{track.title}</div>
                 <div className="artist">
@@ -28,27 +35,37 @@ export default function SongCard({
             <div className="actions">
                 <button
                     className="btn primary"
-                    onClick={() => onPlay?.(track.id)}
+                    onClick={onPlay}
                     aria-label={isActive ? "Now Playing" : "Play this song"}
+                    title={isActive ? "Now Playing" : "Play"}
                 >
-                    {isActive ? "🎵 " : "▶"}
+                    {isActive ? "🎵" : "▶"}
                 </button>
 
-                {inPlaylist ? (
+                {isInPlaylist ? (
                     <button
                         className="btn danger"
-                        onClick={() => onRemoveFromPlaylist?.(track.id)}
+                        onClick={onRemoveFromPlaylist}
                         aria-label="Remove from Playlist"
+                        title="Remove from Playlist"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="red" d="M19 12.998H5v-2h14z" /></svg>
+                        {/* minus icon */}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M19 13H5v-2h14z" />
+                        </svg>
                     </button>
                 ) : (
                     <button
                         className="btn"
-                        onClick={() => onAddToPlaylist?.(track)}
+                        onClick={onAddToPlaylist}
                         aria-label="Add to Playlist"
+                        title="Add to Playlist"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="green" d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z" /></svg>                    </button>
+                        {/* plus icon */}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z" />
+                        </svg>
+                    </button>
                 )}
             </div>
         </div>

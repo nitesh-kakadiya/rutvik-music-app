@@ -1,26 +1,27 @@
-// src/pages/MyPlaylist.jsx
 import React from "react";
+import SongCard from "../components/SongCard";
 
-export default function MyPlaylist({ playlist, onPlay, onRemove }) {
+export default function MyPlaylist({ playlist, onPlay, onRemove, currentId }) {
     return (
         <div className="page">
-            <h2>My Playlist MyPlaylist.jsx({playlist.length})</h2>
+            <h2>My Playlist ({playlist.length})</h2>
 
             {playlist.length === 0 ? (
                 <p className="muted">No songs in playlist yet.</p>
             ) : (
-                <div className="playlist">
+                <div className="song-list">
                     {playlist.map((track) => (
-                        <div key={track.id} className="playlist-item">
-                            <div className="meta">
-                                <div className="title">{track.title}</div>
-                                <div className="artist">{track.artist}</div>
-                            </div>
-                            <div className="actions">
-                                <button className="btn" onClick={() => onPlay(track)}>▶</button>
-                                <button className="btn ghost" onClick={() => onRemove(track.id)}><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 20 20"><path fill="red" d="M19 12.998H5v-2h14z" /></svg></button>
-                            </div>
-                        </div>
+                        <SongCard
+                            key={track.id}
+                            track={track}
+                            // ✅ Show 🎵 only here in MyPlaylist
+                            isActive={currentId === track.id}
+                            // play current item (parent will do playById(track.id, true))
+                            onPlay={() => onPlay?.(track)}
+                            // always show "-" here and remove by id
+                            onRemoveFromPlaylist={() => onRemove?.(track.id)}
+                            inPlaylist={true}
+                        />
                     ))}
                 </div>
             )}

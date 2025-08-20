@@ -174,6 +174,7 @@ export default function App() {
               element={
                 <MyPlaylist
                   playlist={playlist}
+                  currentId={currentTrack?.id}  // ✅ highlight active
                   onPlay={(t) => playById(t.id, true)}
                   onRemove={(i) => removeFromPlaylist(i)}
                 />
@@ -192,6 +193,9 @@ export default function App() {
               onEnded={handleEnded}
               mode={mode}
               setMode={setMode}
+              onAddToPlaylist={addToPlaylist}
+              onRemoveFromPlaylist={removeFromPlaylist}
+              playlist={playlist}
             />
           </div>
 
@@ -204,8 +208,9 @@ export default function App() {
             </div>
             <Playlist
               playlist={playlist}
+              currentId={currentTrack?.id}  
               onPlay={(t) => playById(t.id, true)}
-              onRemove={removeFromPlaylist}
+              onRemove={(id) => removeFromPlaylist(id)}   // ALWAYS remove by id
             />
           </div>
         </aside>

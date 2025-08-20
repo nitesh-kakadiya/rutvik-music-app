@@ -10,6 +10,7 @@ import {
     FaRandom,
     FaStop,
     FaSync,
+    FaHeart,
 } from "react-icons/fa";
 
 // Format seconds into m:ss
@@ -20,9 +21,19 @@ function fmt(sec) {
     return `${m}:${s}`;
 }
 
-export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setMode }) {
+export default function MusicPlayer({
+    track,
+    onNext,
+    onPrev,
+    onEnded,
+    mode,
+    setMode,
+    onAddToPlaylist,
+    onRemoveFromPlaylist, // 👈 new
+    playlist,
+}) {
     const howlRef = useRef(null);
-    const modeRef = useRef(mode); // 🔁 latest mode
+    const modeRef = useRef(mode);
     const [isPlaying, setIsPlaying] = useState(false);
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
@@ -31,7 +42,6 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setM
     // keep modeRef updated
     useEffect(() => {
         modeRef.current = mode;
-        // 🔁 rebind onend whenever mode changes (applies immediately)
         bindOnEnd();
     }, [mode]);
 
@@ -55,8 +65,6 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setM
         });
 
         howlRef.current = h;
-
-        // 🔁 bind onend immediately with current mode
         bindOnEnd();
 
         if (window._autoplayFlag) {
@@ -81,29 +89,25 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setM
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [track?.id]); // only when track changes
+    }, [track?.id]);
 
-    // 🔁 helper to bind onend according to modeRef
+    // helper to bind onend
     const bindOnEnd = () => {
         const h = howlRef.current;
         if (!h) return;
         h.off("end");
         h.on("end", () => {
             const currentMode = modeRef.current;
-
             if (currentMode === "repeat-one") {
                 h.seek(0);
                 h.play();
                 setIsPlaying(true);
                 return;
             }
-
             setIsPlaying(false);
-
             if (currentMode === "repeat-all" || currentMode === "shuffle") {
                 window._autoplayFlag = true;
             }
-
             onEnded?.();
         });
     };
@@ -141,7 +145,7 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setM
     if (!track) return <div className="muted">No track selected.</div>;
     const progress = dur ? pos / dur : 0;
 
-    // Cycle modes (Normal → Repeat-One → Shuffle → Repeat-All)
+    // Cycle modes
     const cycleOrder = ["normal", "repeat-one", "shuffle", "repeat-all"];
     const cycleTo = () => {
         const next = cycleOrder[(cycleOrder.indexOf(mode) + 1) % cycleOrder.length];
@@ -155,6 +159,19 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setM
                 : mode === "shuffle"
                     ? "Shuffle"
                     : "Repeat All";
+
+    // ❤️ check if current track is already in playlist
+    const isFavorite = playlist?.some((t) => t.id === track.id);
+
+    // toggle handler
+    const handleFavoriteClick = () => {
+        if (!track) return;
+        if (isFavorite) {
+            onRemoveFromPlaylist?.(track.id);
+        } else {
+            onAddToPlaylist?.(track);
+        }
+    };
 
     return (
         <div className="player">
@@ -174,7 +191,7 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setM
                         <FaStepForward />
                     </button>
 
-                    {/* Single cycle button */}
+                    {/* 🔁 Mode button */}
                     <button
                         className={`btn ghost mode-${mode}`}
                         onClick={cycleTo}
@@ -188,6 +205,16 @@ export default function MusicPlayer({ track, onNext, onPrev, onEnded, mode, setM
                         )}
                         {mode === "shuffle" && <FaRandom />}
                         {mode === "repeat-all" && <FaSync />}
+                    </button>
+
+                    {/* ❤️ Favorite button */}
+                    <button
+                        className="btn ghost"
+                        title={isFavorite ? "Remove from Playlist" : "Add to Playlist"}
+                        style={{ color: isFavorite ? "red" : "inherit" }}
+                        onClick={handleFavoriteClick}
+                    >
+                        <FaHeart />
                     </button>
                 </div>
             </div>
