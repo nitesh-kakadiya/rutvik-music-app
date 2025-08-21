@@ -136,19 +136,23 @@ body {
 }
 
 /* Mode highlight colors */
+/* Normal → red */
 .btn.ghost.mode-normal {
-  color: red;
-  border-color: #e74c3c;
-  background: rgba(199, 48, 25, 0.174);
-}
-
-.btn.ghost.mode-repeat-one {
-  color: yellow;
+  color: #e74c3c;
   /* red */
-  border-color: #c2c062;
+  border-color: #e74c3c;
   background: rgba(231, 76, 60, 0.15);
 }
 
+/* Repeat-One → yellow */
+.btn.ghost.mode-repeat-one {
+  color: #f1c40f;
+  /* yellow */
+  border-color: #f1c40f;
+  background: rgba(241, 196, 15, 0.15);
+}
+
+/* Shuffle → blue */
 .btn.ghost.mode-shuffle {
   color: #3498db;
   /* blue */
@@ -156,13 +160,36 @@ body {
   background: rgba(52, 152, 219, 0.15);
 }
 
+/* Repeat-All → green */
 .btn.ghost.mode-repeat-all {
-  color: #27ae60;
+  color: #2ecc71;
   /* green */
-  border-color: #27ae60;
-  background: rgba(39, 174, 96, 0.15);
+  border-color: #2ecc71;
+  background: rgba(46, 204, 113, 0.15);
 }
 
+/* Hover effect (optional) */
+.btn.ghost:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
+
+/* Playlist heart button colors */
+.btn.ghost.playlist-add {
+  color: #3498db;
+  /* blue */
+  border-color: #3498db;
+  background: rgba(52, 152, 219, 0.15);
+}
+
+.btn.ghost.playlist-remove {
+  color: #e74c3c;
+  /* red */
+  border-color: #e74c3c;
+  background: rgba(231, 76, 60, 0.15);
+}
 /* ===== App Layout ===== */
 .app {
   max-width: 1200px;

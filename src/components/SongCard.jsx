@@ -44,7 +44,7 @@ export default function SongCard({
 
                 {isInPlaylist ? (
                     <button
-                        className="btn danger"
+                        className="btn ghost playlist-remove"
                         onClick={onRemoveFromPlaylist}
                         aria-label="Remove from Playlist"
                         title="Remove from Playlist"
@@ -56,7 +56,7 @@ export default function SongCard({
                     </button>
                 ) : (
                     <button
-                        className="btn"
+                        className="btn ghost playlist-add"
                         onClick={onAddToPlaylist}
                         aria-label="Add to Playlist"
                         title="Add to Playlist"

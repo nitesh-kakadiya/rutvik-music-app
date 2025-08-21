@@ -31,6 +31,7 @@ const TRACKS = importAll(require.context("./Nitesh", false, /\.mp3$/));
 
 export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [seekPos, setSeekPos] = useState(0); // ✅ save seek position
   const [playlist, setPlaylist] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("playlist_v1") || "[]");
@@ -40,10 +41,14 @@ export default function App() {
   });
 
   // normal | repeat-one | shuffle | repeat-all
-  const [mode, setMode] = useState("normal");
+  const [mode, setMode] = useState(() => {
+    return localStorage.getItem("last_mode") || "normal"; // ✅ load saved or default
+  });
+
 
   const navigate = useNavigate();
 
+  // ✅ save playlist to localStorage
   useEffect(() => {
     localStorage.setItem("playlist_v1", JSON.stringify(playlist));
   }, [playlist]);
@@ -54,12 +59,19 @@ export default function App() {
   );
 
   // playback
-  const playById = useCallback((id, autoplay = false) => {
+  const playById = useCallback((id, autoplay = false, resumeTime = 0) => {
     const idx = TRACKS.findIndex((t) => t.id === id);
     if (idx !== -1) {
       if (autoplay) window._autoplayFlag = true;
       setCurrentIndex((prev) => (prev === idx ? null : idx));
       setTimeout(() => setCurrentIndex(idx), 0);
+      setSeekPos(resumeTime || 0);
+
+      // ✅ save last played in localStorage
+      localStorage.setItem(
+        "last_played",
+        JSON.stringify({ id, isPlaying: autoplay, seek: resumeTime || 0 })
+      );
     }
   }, []);
 
@@ -68,9 +80,21 @@ export default function App() {
     if (mode === "shuffle") {
       const random = Math.floor(Math.random() * TRACKS.length);
       setCurrentIndex(random);
+      localStorage.setItem(
+        "last_played",
+        JSON.stringify({ id: TRACKS[random].id, isPlaying: true, seek: 0 })
+      );
     } else {
-      setCurrentIndex((prev) => (prev + 1) % TRACKS.length);
+      setCurrentIndex((prev) => {
+        const next = (prev + 1) % TRACKS.length;
+        localStorage.setItem(
+          "last_played",
+          JSON.stringify({ id: TRACKS[next].id, isPlaying: true, seek: 0 })
+        );
+        return next;
+      });
     }
+    setSeekPos(0);
   }, [mode]);
 
   const playPrev = useCallback(() => {
@@ -78,18 +102,27 @@ export default function App() {
     if (mode === "shuffle") {
       const random = Math.floor(Math.random() * TRACKS.length);
       setCurrentIndex(random);
+      localStorage.setItem(
+        "last_played",
+        JSON.stringify({ id: TRACKS[random].id, isPlaying: true, seek: 0 })
+      );
     } else {
-      setCurrentIndex((prev) => (prev - 1 + TRACKS.length) % TRACKS.length);
+      setCurrentIndex((prev) => {
+        const prevIndex = (prev - 1 + TRACKS.length) % TRACKS.length;
+        localStorage.setItem(
+          "last_played",
+          JSON.stringify({ id: TRACKS[prevIndex].id, isPlaying: true, seek: 0 })
+        );
+        return prevIndex;
+      });
     }
+    setSeekPos(0);
   }, [mode]);
 
   // on track end
   const handleEnded = useCallback(() => {
-    // repeat-one handled inside MusicPlayer
     if (mode === "repeat-all" || mode === "shuffle") {
       playNext();
-    } else {
-      // normal: stop
     }
   }, [mode, playNext]);
 
@@ -108,6 +141,31 @@ export default function App() {
         : prev.filter((t) => t.id !== idOrIndex)
     );
   }, []);
+
+  // ✅ auto-load last played track + seek position
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("last_played") || "null");
+    if (saved?.id) {
+      playById(saved.id, saved.isPlaying, saved.seek || 0);
+    }
+  }, [playById]);
+
+  // ✅ keep updating seek position in localStorage
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!currentTrack) return;
+      const audio = window._howlerRef?.(); // custom global accessor
+      if (audio && typeof audio.seek === "function") {
+        const pos = audio.seek() || 0;
+        setSeekPos(pos);
+        localStorage.setItem(
+          "last_played",
+          JSON.stringify({ id: currentTrack.id, isPlaying: true, seek: pos })
+        );
+      }
+    }, 2000); // update every 2s
+    return () => clearInterval(interval);
+  }, [currentTrack]);
 
   return (
     <div className="app">
@@ -174,7 +232,7 @@ export default function App() {
               element={
                 <MyPlaylist
                   playlist={playlist}
-                  currentId={currentTrack?.id}  // ✅ highlight active
+                  currentId={currentTrack?.id}
                   onPlay={(t) => playById(t.id, true)}
                   onRemove={(i) => removeFromPlaylist(i)}
                 />
@@ -196,6 +254,7 @@ export default function App() {
               onAddToPlaylist={addToPlaylist}
               onRemoveFromPlaylist={removeFromPlaylist}
               playlist={playlist}
+              resumeSeek={seekPos} // ✅ pass saved seek
             />
           </div>
 
@@ -208,9 +267,9 @@ export default function App() {
             </div>
             <Playlist
               playlist={playlist}
-              currentId={currentTrack?.id}  
+              currentId={currentTrack?.id}
               onPlay={(t) => playById(t.id, true)}
-              onRemove={(id) => removeFromPlaylist(id)}   // ALWAYS remove by id
+              onRemove={(id) => removeFromPlaylist(id)} // remove by id
             />
           </div>
         </aside>

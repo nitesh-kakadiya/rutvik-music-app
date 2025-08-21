@@ -1,3 +1,4 @@
+// src/components/MusicPlayer.jsx
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Howl } from "howler";
 import {
@@ -13,7 +14,6 @@ import {
     FaHeart,
 } from "react-icons/fa";
 
-// Format seconds into m:ss
 function fmt(sec) {
     if (!sec && sec !== 0) return "0:00";
     const m = Math.floor(sec / 60);
@@ -29,8 +29,9 @@ export default function MusicPlayer({
     mode,
     setMode,
     onAddToPlaylist,
-    onRemoveFromPlaylist, // 👈 new
+    onRemoveFromPlaylist,
     playlist,
+    resumeSeek = 0,
 }) {
     const howlRef = useRef(null);
     const modeRef = useRef(mode);
@@ -66,20 +67,51 @@ export default function MusicPlayer({
 
         howlRef.current = h;
         bindOnEnd();
+        window._howlerRef = () => h; // expose globally for App.jsx
 
-        if (window._autoplayFlag) {
-            h.play();
-            setIsPlaying(true);
-            window._autoplayFlag = false;
-        }
+        const saved = JSON.parse(localStorage.getItem("last_played") || "null");
+        h.once("load", () => {
+            let startPos = 0;
+            let shouldPlay = false;
+
+            if (saved && saved.id === track.id) {
+                if (typeof saved.seek === "number" && saved.seek < h.duration()) {
+                    startPos = saved.seek;
+                }
+                shouldPlay = saved.isPlaying; // ✅ respect paused state
+            } else if (resumeSeek > 0 && resumeSeek < h.duration()) {
+                startPos = resumeSeek;
+                shouldPlay = true;
+            }
+
+            if (startPos > 0) {
+                h.seek(startPos);
+                setPos(startPos);
+            }
+            if (shouldPlay || window._autoplayFlag) {
+                h.play();
+                setIsPlaying(true);
+                window._autoplayFlag = false;
+            } else {
+                setIsPlaying(false); // paused resume
+            }
+        });
 
         const timer = setInterval(() => {
-            if (h.playing()) {
-                const p = h.seek() || 0;
-                setPos(typeof p === "number" ? p : 0);
-                if (!dur) setDur(h.duration() || 0);
-            }
-        }, 300);
+            if (!h) return;
+            const p = h.seek() || 0;
+            setPos(typeof p === "number" ? p : 0);
+            if (!dur) setDur(h.duration() || 0);
+
+            localStorage.setItem(
+                "last_played",
+                JSON.stringify({
+                    id: track.id,
+                    seek: p,
+                    isPlaying: h.playing(),
+                })
+            );
+        }, 1000);
 
         return () => {
             clearInterval(timer);
@@ -91,7 +123,6 @@ export default function MusicPlayer({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [track?.id]);
 
-    // helper to bind onend
     const bindOnEnd = () => {
         const h = howlRef.current;
         if (!h) return;
@@ -112,12 +143,10 @@ export default function MusicPlayer({
         });
     };
 
-    // Sync volume
     useEffect(() => {
         if (howlRef.current) howlRef.current.volume(volume);
     }, [volume]);
 
-    // Toggle play/pause
     const toggle = useCallback(() => {
         const h = howlRef.current;
         if (!h) return;
@@ -130,7 +159,6 @@ export default function MusicPlayer({
         }
     }, []);
 
-    // Seek progress bar
     const seekTo = useCallback(
         (fraction) => {
             const h = howlRef.current;
@@ -142,14 +170,35 @@ export default function MusicPlayer({
         [dur]
     );
 
+    // 🎧 Media Session API
+    useEffect(() => {
+        if ("mediaSession" in navigator && track) {
+            navigator.mediaSession.metadata = new window.MediaMetadata({
+                title: track.title,
+                artist: track.artist,
+                album: "My Music App",
+                artwork: [
+                    { src: "/logo192.png", sizes: "192x192", type: "image/png" },
+                    { src: "/logo512.png", sizes: "512x512", type: "image/png" },
+                ],
+            });
+
+            navigator.mediaSession.setActionHandler("play", () => toggle());
+            navigator.mediaSession.setActionHandler("pause", () => toggle());
+            navigator.mediaSession.setActionHandler("nexttrack", () => onNext?.());
+            navigator.mediaSession.setActionHandler("previoustrack", () => onPrev?.());
+        }
+    }, [track, toggle, onNext, onPrev]);
+
     if (!track) return <div className="muted">No track selected.</div>;
     const progress = dur ? pos / dur : 0;
 
-    // Cycle modes
-    const cycleOrder = ["normal", "repeat-one", "shuffle", "repeat-all"];
     const cycleTo = () => {
+        const cycleOrder = ["normal", "repeat-one", "shuffle", "repeat-all"];
         const next = cycleOrder[(cycleOrder.indexOf(mode) + 1) % cycleOrder.length];
         setMode(next);
+        // ✅ Save in localStorage
+        localStorage.setItem("last_mode", next);
     };
     const modeTitle =
         mode === "normal"
@@ -160,10 +209,7 @@ export default function MusicPlayer({
                     ? "Shuffle"
                     : "Repeat All";
 
-    // ❤️ check if current track is already in playlist
     const isFavorite = playlist?.some((t) => t.id === track.id);
-
-    // toggle handler
     const handleFavoriteClick = () => {
         if (!track) return;
         if (isFavorite) {
@@ -181,17 +227,13 @@ export default function MusicPlayer({
                     <div className="artist muted">{track.artist}</div>
                 </div>
                 <div className="controls">
-                    <button className="btn" onClick={onPrev}>
-                        <FaStepBackward />
-                    </button>
+                    <button className="btn" onClick={onPrev}><FaStepBackward /></button>
                     <button className="btn primary" onClick={toggle}>
                         {isPlaying ? <FaPause /> : <FaPlay />}
                     </button>
-                    <button className="btn" onClick={onNext}>
-                        <FaStepForward />
-                    </button>
+                    <button className="btn" onClick={onNext}><FaStepForward /></button>
 
-                    {/* 🔁 Mode button */}
+                    {/* Mode button with dynamic class */}
                     <button
                         className={`btn ghost mode-${mode}`}
                         onClick={cycleTo}
@@ -207,11 +249,10 @@ export default function MusicPlayer({
                         {mode === "repeat-all" && <FaSync />}
                     </button>
 
-                    {/* ❤️ Favorite button */}
+                    {/* Playlist (heart) button */}
                     <button
-                        className="btn ghost"
+                        className={`btn ghost ${isFavorite ? "playlist-remove" : ""}`}
                         title={isFavorite ? "Remove from Playlist" : "Add to Playlist"}
-                        style={{ color: isFavorite ? "red" : "inherit" }}
                         onClick={handleFavoriteClick}
                     >
                         <FaHeart />
@@ -219,7 +260,6 @@ export default function MusicPlayer({
                 </div>
             </div>
 
-            {/* Progress Bar */}
             <div className="time">
                 <span>{fmt(pos)}</span>
                 <div
@@ -229,15 +269,11 @@ export default function MusicPlayer({
                         seekTo((e.clientX - r.left) / r.width);
                     }}
                 >
-                    <div
-                        className="bar-fill"
-                        style={{ width: `${progress * 100}%` }}
-                    />
+                    <div className="bar-fill" style={{ width: `${progress * 100}%` }} />
                 </div>
                 <span>{fmt(dur)}</span>
             </div>
 
-            {/* Volume */}
             <div className="volume">
                 <FaVolumeUp style={{ marginRight: "8px" }} />
                 <input
