@@ -69,17 +69,11 @@ export default function MusicPlayer({
         bindOnEnd();
         window._howlerRef = () => h; // expose globally for App.jsx
 
-        const saved = JSON.parse(localStorage.getItem("last_played") || "null");
         h.once("load", () => {
             let startPos = 0;
             let shouldPlay = false;
 
-            if (saved && saved.id === track.id) {
-                if (typeof saved.seek === "number" && saved.seek < h.duration()) {
-                    startPos = saved.seek;
-                }
-                shouldPlay = saved.isPlaying; // ✅ respect paused state
-            } else if (resumeSeek > 0 && resumeSeek < h.duration()) {
+            if (resumeSeek > 0 && resumeSeek < h.duration()) {
                 startPos = resumeSeek;
                 shouldPlay = true;
             }
@@ -102,15 +96,6 @@ export default function MusicPlayer({
             const p = h.seek() || 0;
             setPos(typeof p === "number" ? p : 0);
             if (!dur) setDur(h.duration() || 0);
-
-            localStorage.setItem(
-                "last_played",
-                JSON.stringify({
-                    id: track.id,
-                    seek: p,
-                    isPlaying: h.playing(),
-                })
-            );
         }, 1000);
 
         return () => {
@@ -197,7 +182,7 @@ export default function MusicPlayer({
         const cycleOrder = ["normal", "repeat-one", "shuffle", "repeat-all"];
         const next = cycleOrder[(cycleOrder.indexOf(mode) + 1) % cycleOrder.length];
         setMode(next);
-        // ✅ Save in localStorage
+        // keep saving mode in localStorage (ok for personal setting)
         localStorage.setItem("last_mode", next);
     };
     const modeTitle =

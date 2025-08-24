@@ -31,6 +31,9 @@ function importAll(r) {
 }
 const TRACKS = importAll(require.context("./Nitesh", false, /\.mp3$/));
 
+// ✅ Use Render backend URL from .env
+const BACKEND_URL = process.env.REACT_APP_API_BASE;
+
 export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [seekPos, setSeekPos] = useState(0);
@@ -109,9 +112,10 @@ export default function App() {
     );
   }, []);
 
-  // 🔹 load last track from backend
+  // 🔹 load last track from Render backend
   useEffect(() => {
-    axios.get("http://localhost:3000/api/track")
+    if (!BACKEND_URL) return;
+    axios.get(`${BACKEND_URL}/api/track`)
       .then(res => {
         const saved = res.data;
         if (saved?.id) {
@@ -123,6 +127,7 @@ export default function App() {
 
   // 🔹 save last track to backend every 2s
   useEffect(() => {
+    if (!BACKEND_URL) return;
     const interval = setInterval(() => {
       if (!currentTrack) return;
       const audio = window._howlerRef?.();
@@ -130,7 +135,7 @@ export default function App() {
         const pos = audio.seek() || 0;
         setSeekPos(pos);
 
-        axios.post("http://localhost:3000/api/track", {
+        axios.post(`${BACKEND_URL}/api/track`, {
           id: currentTrack.id,
           seek: pos,
           isPlaying: audio.playing(),
