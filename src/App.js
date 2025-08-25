@@ -30,6 +30,9 @@ function importAll(r) {
   });
 }
 const TRACKS = importAll(require.context("./Nitesh", false, /\.mp3$/));
+console.log("process.env:", process.env);
+console.log("TEST:", process.env.REACT_APP_TEST);
+
 
 // ✅ Use Render backend URL from .env
 const BACKEND_URL = process.env.REACT_APP_API_BASE;
@@ -114,9 +117,12 @@ export default function App() {
 
   // 🔹 load last track from Render backend
   useEffect(() => {
+    // console.log("BACKEND_URL:", BACKEND_URL);
+
     if (!BACKEND_URL) return;
     axios.get(`${BACKEND_URL}/api/track`)
       .then(res => {
+        console.log("Loaded from backend:", res.data);
         const saved = res.data;
         if (saved?.id) {
           playById(saved.id, saved.isPlaying, saved.seek || 0);
