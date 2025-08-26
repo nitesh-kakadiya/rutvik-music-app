@@ -136,106 +136,116 @@ body {
 }
 
 /* Mode highlight colors */
-/* Normal → red */
 .btn.ghost.mode-normal {
   color: #e74c3c;
-  /* red */
   border-color: #e74c3c;
   background: rgba(231, 76, 60, 0.15);
 }
 
-/* Repeat-One → yellow */
 .btn.ghost.mode-repeat-one {
   color: #f1c40f;
-  /* yellow */
   border-color: #f1c40f;
   background: rgba(241, 196, 15, 0.15);
 }
 
-/* Shuffle → blue */
 .btn.ghost.mode-shuffle {
   color: #3498db;
-  /* blue */
   border-color: #3498db;
   background: rgba(52, 152, 219, 0.15);
 }
 
-/* Repeat-All → green */
 .btn.ghost.mode-repeat-all {
   color: #2ecc71;
-  /* green */
   border-color: #2ecc71;
   background: rgba(46, 204, 113, 0.15);
 }
 
-/* Hover effect (optional) */
 .btn.ghost:hover {
   opacity: 0.9;
   transform: scale(1.05);
   transition: all 0.2s ease;
 }
 
-
 /* Playlist heart button colors */
 .btn.ghost.playlist-add {
   color: #3498db;
-  /* blue */
   border-color: #3498db;
   background: rgba(52, 152, 219, 0.15);
 }
 
 .btn.ghost.playlist-remove {
   color: #e74c3c;
-  /* red */
   border-color: #e74c3c;
   background: rgba(231, 76, 60, 0.15);
 }
+
 /* ===== App Layout ===== */
 .app {
   max-width: 1200px;
   margin: 0 auto;
   padding: 16px;
+  padding-top: 80px;
+  /* navbar ni jagya mate */
 }
 
 .layout {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr;
 }
 
-@media (max-width: 960px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-}
-
+/* main content → leave space for sidebar */
 .main {
-  min-width: 0;
+  flex: 1;
+  width: 780px;
 }
 
+/* fixed sidebar on right */
 .sidebar {
+  position: fixed;
+  top: 80px;
+  /* navbar niche thi start */
+  right: 150px;
+  width: 410px;
   display: grid;
   gap: 16px;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+  padding: 14px;
+  height: calc(100vh - 80px);
+  /* overflow-y: auto; */
 }
 
-.card {
+/* cards inside sidebar */
+.card-top {
   background: var(--bg-elev);
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 14px;
 }
 
-/* ===== Navbar ===== */
-.navbar {
+.card-bottem {
   background: var(--bg-elev);
   border: 1px solid var(--line);
   border-radius: 14px;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+/* ===== Navbar ===== */
+.navbar {
+  position: fixed;
+  /* ✅ fixed */
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--line);
   padding: 12px 14px;
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 12px;
   align-items: center;
-  margin-bottom: 16px;
+  z-index: 1000;
 }
 
 .brand a {
@@ -494,15 +504,19 @@ a:hover {
    ========================= */
 @media (max-width: 960px) {
   .layout {
-    grid-template-columns: 1fr;
+    flex-direction: column;
   }
 
-  .navbar {
-    grid-template-columns: 1fr auto;
+  .main {
+    padding-right: 0;
+    overflow-y: auto;
   }
 
-  .search input {
-    min-width: 120px;
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-left: none;
   }
 }
 
@@ -542,6 +556,8 @@ a:hover {
 @media (max-width: 480px) {
   .app {
     padding: 8px;
+    padding-top: 80px;
+    /* navbar space */
   }
 
   .navbar {
@@ -580,31 +596,5 @@ a:hover {
   .volume {
     flex-direction: column;
     align-items: stretch;
-  }
-}
-
-/* =========================
-   Universal Now Playing (Mobile Fix)
-   ========================= */
-@media (max-width: 768px) {
-  .sidebar .card:first-child {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    background: var(--bg-elev);
-    border-top: 1px solid var(--line);
-    border-radius: 12px 12px 0 0;
-    z-index: 100;
-    padding: 10px 14px;
-  }
-
-  .sidebar .card:nth-child(2) {
-    display: none;
-  }
-
-  .main {
-    padding-bottom: 140px;
   }
 }

@@ -31,8 +31,6 @@ function importAll(r) {
 }
 const TRACKS = importAll(require.context("./Nitesh", false, /\.mp3$/));
 console.log("process.env:", process.env);
-console.log("TEST:", process.env.REACT_APP_TEST);
-
 
 // ✅ Use Render backend URL from .env
 const BACKEND_URL = process.env.REACT_APP_API_BASE;
@@ -209,7 +207,7 @@ export default function App() {
         </section>
 
         <aside className="sidebar">
-          <div className="card">
+          <div className="card-top">
             <h3>Now Playing</h3>
             <MusicPlayer
               track={currentTrack}
@@ -225,7 +223,7 @@ export default function App() {
             />
           </div>
 
-          <div className="card">
+          <div className="card-bottem">
             <div className="row between">
               <h3>Your Playlist</h3>
               <button className="btn ghost" onClick={() => setPlaylist([])}>Clear</button>
