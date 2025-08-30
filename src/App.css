@@ -183,9 +183,8 @@ body {
 .app {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 20px;
   padding-top: 80px;
-  /* navbar ni jagya mate */
 }
 
 .layout {
@@ -196,16 +195,18 @@ body {
 /* main content → leave space for sidebar */
 .main {
   flex: 1;
-  width: 780px;
+  width: 45vw;
+  color: #d2e031;
+  border-color: #d2e031;
+  background: rgb(210, 224, 49, 0.15);
 }
 
 /* fixed sidebar on right */
 .sidebar {
   position: fixed;
   top: 80px;
-  /* navbar niche thi start */
-  right: 150px;
-  width: 410px;
+  right: 12vw;
+  width: 30vw;
   display: grid;
   gap: 16px;
   background: var(--panel);
@@ -217,10 +218,13 @@ body {
 
 /* cards inside sidebar */
 .card-top {
-  background: var(--bg-elev);
+  /* background: var(--bg-elev); */
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 14px;
+  color: #432ecc;
+  border-color: #432ecc;
+  background: rgb(67, 46, 204, 0.15);
 }
 
 .card-bottem {
@@ -229,6 +233,9 @@ body {
   border-radius: 14px;
   padding: 14px;
   overflow-y: auto;
+  color: #77a345;
+  border-color: #77a345;
+  background: rgb(#119, 163, 69, 0.15);
 }
 
 /* ===== Navbar ===== */
