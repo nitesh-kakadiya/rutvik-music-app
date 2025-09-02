@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import SongCard from "../components/SongCard";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://rutvik-music-server.onrender.com";
+const BACKEND_URL =
+    process.env.REACT_APP_BACKEND_URL || "https://rutvik-music-server.onrender.com";
 
 export default function Home({
     tracks: initialTracks = [],
@@ -11,15 +12,28 @@ export default function Home({
     onRemoveFromPlaylist,
     playlist = [],
 }) {
-    const [tracks, setTracks] = useState(initialTracks);
+    const [tracks, setTracks] = useState(Array.isArray(initialTracks) ? initialTracks : []);
 
     // 🔹 Load tracks from backend if none are provided
     useEffect(() => {
         if (!initialTracks.length) {
             fetch(`${BACKEND_URL}/google/songs`)
                 .then((res) => res.json())
-                .then((data) => setTracks(data))
-                .catch((err) => console.error("Failed to fetch tracks:", err));
+                .then((data) => {
+                    // ✅ Ensure it's an array
+                    if (Array.isArray(data)) {
+                        setTracks(data);
+                    } else if (Array.isArray(data?.tracks)) {
+                        setTracks(data.tracks);
+                    } else {
+                        console.error("Unexpected data format:", data);
+                        setTracks([]); // fallback
+                    }
+                })
+                .catch((err) => {
+                    console.error("Failed to fetch tracks:", err);
+                    setTracks([]);
+                });
         }
     }, [initialTracks]);
 
@@ -37,7 +51,7 @@ export default function Home({
                         onPlay={() => onPlay?.(track.id, true)}
                         onAddToPlaylist={() => onAddToPlaylist?.(track)}
                         onRemoveFromPlaylist={() => onRemoveFromPlaylist?.(track.id)}
-                        playlist={playlist}   /* 👈 pass full playlist */
+                        playlist={playlist}
                     />
                 ))}
             </div>

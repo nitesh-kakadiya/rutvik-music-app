@@ -15,11 +15,10 @@ import MyPlaylist from "./pages/MyPlaylist";
 
 import "./App.css";
 
-// ✅ Use backend URL from .env
 const BACKEND_URL = process.env.REACT_APP_API_BASE;
 
 export default function App() {
-  const [tracks, setTracks] = useState([]);      // <-- all available songs
+  const [tracks, setTracks] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [seekPos, setSeekPos] = useState(0);
   const [playlist, setPlaylist] = useState(() => {
@@ -29,25 +28,20 @@ export default function App() {
       return [];
     }
   });
-  const [mode, setMode] = useState(() => {
-    return localStorage.getItem("last_mode") || "normal";
-  });
+  const [mode, setMode] = useState(() => localStorage.getItem("last_mode") || "normal");
 
   const navigate = useNavigate();
 
-  // ✅ Fetch songs from backend (Google Drive)
+  // ✅ Fetch songs
   useEffect(() => {
-    console.log("BACKEND_URL rk: ", BACKEND_URL)
     if (!BACKEND_URL) return;
     axios
-      .get(`${BACKEND_URL}/google/songs`, { withCredentials: true })
-      .then((res) => {
-        setTracks(res.data || []);
-      })
+      .get(`${BACKEND_URL}/google/songs`)
+      .then((res) => setTracks(res.data || []))
       .catch((err) => console.error("Failed to fetch songs:", err));
   }, []);
 
-  // save playlist locally
+  // Save playlist in localStorage
   useEffect(() => {
     localStorage.setItem("playlist_v1", JSON.stringify(playlist));
   }, [playlist]);
@@ -117,7 +111,7 @@ export default function App() {
   useEffect(() => {
     if (!BACKEND_URL) return;
     axios
-      .get(`${BACKEND_URL}/google/songs`)
+      .get(`${BACKEND_URL}/google/lastTrack`)
       .then((res) => {
         const saved = res.data;
         if (saved?.id) {
@@ -138,7 +132,7 @@ export default function App() {
         setSeekPos(pos);
 
         axios
-          .post(`${BACKEND_URL}/google/songs`, {
+          .post(`${BACKEND_URL}/google/lastTrack`, {
             id: currentTrack.id,
             seek: pos,
             isPlaying: audio.playing(),
