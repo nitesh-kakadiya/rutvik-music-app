@@ -16,7 +16,7 @@ export default function Home({
     // 🔹 Load tracks from backend if none are provided
     useEffect(() => {
         if (!initialTracks.length) {
-            fetch(`${BACKEND_URL}/api/tracks`)
+            fetch(`${BACKEND_URL}/google/songs`)
                 .then((res) => res.json())
                 .then((data) => setTracks(data))
                 .catch((err) => console.error("Failed to fetch tracks:", err));

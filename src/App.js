@@ -15,27 +15,11 @@ import MyPlaylist from "./pages/MyPlaylist";
 
 import "./App.css";
 
-// auto import songs
-function importAll(r) {
-  return r.keys().map((fileName, index) => {
-    const url = r(fileName);
-    const name = fileName.replace("./", "").replace(/\.[^/.]+$/, "");
-    const parts = name.split(" - ");
-    return {
-      id: String(index + 1),
-      title: parts[0] || name,
-      artist: parts[1] || "Unknown Artist",
-      url,
-    };
-  });
-}
-const TRACKS = importAll(require.context("./Nitesh", false, /\.mp3$/));
-console.log("process.env:", process.env);
-
-// ✅ Use Render backend URL from .env
+// ✅ Use backend URL from .env
 const BACKEND_URL = process.env.REACT_APP_API_BASE;
 
 export default function App() {
+  const [tracks, setTracks] = useState([]);      // <-- all available songs
   const [currentIndex, setCurrentIndex] = useState(0);
   const [seekPos, setSeekPos] = useState(0);
   const [playlist, setPlaylist] = useState(() => {
@@ -51,46 +35,62 @@ export default function App() {
 
   const navigate = useNavigate();
 
+  // ✅ Fetch songs from backend (Google Drive)
+  useEffect(() => {
+    console.log("BACKEND_URL rk: ", BACKEND_URL)
+    if (!BACKEND_URL) return;
+    axios
+      .get(`${BACKEND_URL}/google/songs`, { withCredentials: true })
+      .then((res) => {
+        setTracks(res.data || []);
+      })
+      .catch((err) => console.error("Failed to fetch songs:", err));
+  }, []);
+
+  // save playlist locally
   useEffect(() => {
     localStorage.setItem("playlist_v1", JSON.stringify(playlist));
   }, [playlist]);
 
   const currentTrack = useMemo(
-    () => (currentIndex != null ? TRACKS[currentIndex] : null),
-    [currentIndex]
+    () => (currentIndex != null ? tracks[currentIndex] : null),
+    [currentIndex, tracks]
   );
 
-  const playById = useCallback((id, autoplay = false, resumeTime = 0) => {
-    const idx = TRACKS.findIndex((t) => t.id === id);
-    if (idx !== -1) {
-      if (autoplay) window._autoplayFlag = true;
-      setCurrentIndex((prev) => (prev === idx ? null : idx));
-      setTimeout(() => setCurrentIndex(idx), 0);
-      setSeekPos(resumeTime || 0);
-    }
-  }, []);
+  const playById = useCallback(
+    (id, autoplay = false, resumeTime = 0) => {
+      const idx = tracks.findIndex((t) => t.id === id);
+      if (idx !== -1) {
+        if (autoplay) window._autoplayFlag = true;
+        setCurrentIndex((prev) => (prev === idx ? null : idx));
+        setTimeout(() => setCurrentIndex(idx), 0);
+        setSeekPos(resumeTime || 0);
+      }
+    },
+    [tracks]
+  );
 
   const playNext = useCallback(() => {
     window._autoplayFlag = true;
     if (mode === "shuffle") {
-      const random = Math.floor(Math.random() * TRACKS.length);
+      const random = Math.floor(Math.random() * tracks.length);
       setCurrentIndex(random);
     } else {
-      setCurrentIndex((prev) => (prev + 1) % TRACKS.length);
+      setCurrentIndex((prev) => (prev + 1) % tracks.length);
     }
     setSeekPos(0);
-  }, [mode]);
+  }, [mode, tracks]);
 
   const playPrev = useCallback(() => {
     window._autoplayFlag = true;
     if (mode === "shuffle") {
-      const random = Math.floor(Math.random() * TRACKS.length);
+      const random = Math.floor(Math.random() * tracks.length);
       setCurrentIndex(random);
     } else {
-      setCurrentIndex((prev) => (prev - 1 + TRACKS.length) % TRACKS.length);
+      setCurrentIndex((prev) => (prev - 1 + tracks.length) % tracks.length);
     }
     setSeekPos(0);
-  }, [mode]);
+  }, [mode, tracks]);
 
   const handleEnded = useCallback(() => {
     if (mode === "repeat-all" || mode === "shuffle") {
@@ -113,23 +113,21 @@ export default function App() {
     );
   }, []);
 
-  // 🔹 load last track from Render backend
+  // 🔹 Load last track from backend
   useEffect(() => {
-    // console.log("BACKEND_URL:", BACKEND_URL);
-
     if (!BACKEND_URL) return;
-    axios.get(`${BACKEND_URL}/api/track`)
-      .then(res => {
-        console.log("Loaded from backend:", res.data);
+    axios
+      .get(`${BACKEND_URL}/google/songs`)
+      .then((res) => {
         const saved = res.data;
         if (saved?.id) {
           playById(saved.id, saved.isPlaying, saved.seek || 0);
         }
       })
-      .catch(err => console.log("Failed to load last track:", err));
+      .catch((err) => console.log("Failed to load last track:", err));
   }, [playById]);
 
-  // 🔹 save last track to backend every 2s
+  // 🔹 Save last track to backend every 2s
   useEffect(() => {
     if (!BACKEND_URL) return;
     const interval = setInterval(() => {
@@ -139,11 +137,13 @@ export default function App() {
         const pos = audio.seek() || 0;
         setSeekPos(pos);
 
-        axios.post(`${BACKEND_URL}/api/track`, {
-          id: currentTrack.id,
-          seek: pos,
-          isPlaying: audio.playing(),
-        }).catch(err => console.log("Failed to save last track:", err));
+        axios
+          .post(`${BACKEND_URL}/google/songs`, {
+            id: currentTrack.id,
+            seek: pos,
+            isPlaying: audio.playing(),
+          })
+          .catch((err) => console.log("Failed to save last track:", err));
       }
     }, 2000);
     return () => clearInterval(interval);
@@ -155,54 +155,69 @@ export default function App() {
       <main className="layout">
         <section className="main">
           <Routes>
-            <Route path="/" element={
-              <Home
-                tracks={TRACKS}
-                currentId={currentTrack?.id}
-                onPlay={playById}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveFromPlaylist={removeFromPlaylist}
-                playlist={playlist}
-              />
-            } />
-            <Route path="/artist/:name" element={
-              <Artist
-                tracks={TRACKS}
-                currentId={currentTrack?.id}
-                onPlay={playById}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveFromPlaylist={removeFromPlaylist}
-                playlist={playlist}
-              />
-            } />
-            <Route path="/search" element={
-              <SearchResults
-                tracks={TRACKS}
-                currentId={currentTrack?.id}
-                onPlay={playById}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveFromPlaylist={removeFromPlaylist}
-                playlist={playlist}
-              />
-            } />
-            <Route path="/all-songs" element={
-              <AllSongs
-                tracks={TRACKS}
-                currentId={currentTrack?.id}
-                onPlay={playById}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveFromPlaylist={removeFromPlaylist}
-                playlist={playlist}
-              />
-            } />
-            <Route path="/myplaylist" element={
-              <MyPlaylist
-                playlist={playlist}
-                currentId={currentTrack?.id}
-                onPlay={(t) => playById(t.id, true)}
-                onRemove={(i) => removeFromPlaylist(i)}
-              />
-            } />
+            <Route
+              path="/"
+              element={
+                <Home
+                  tracks={tracks}
+                  currentId={currentTrack?.id}
+                  onPlay={playById}
+                  onAddToPlaylist={addToPlaylist}
+                  onRemoveFromPlaylist={removeFromPlaylist}
+                  playlist={playlist}
+                />
+              }
+            />
+            <Route
+              path="/artist/:name"
+              element={
+                <Artist
+                  tracks={tracks}
+                  currentId={currentTrack?.id}
+                  onPlay={playById}
+                  onAddToPlaylist={addToPlaylist}
+                  onRemoveFromPlaylist={removeFromPlaylist}
+                  playlist={playlist}
+                />
+              }
+            />
+            <Route
+              path="/search"
+              element={
+                <SearchResults
+                  tracks={tracks}
+                  currentId={currentTrack?.id}
+                  onPlay={playById}
+                  onAddToPlaylist={addToPlaylist}
+                  onRemoveFromPlaylist={removeFromPlaylist}
+                  playlist={playlist}
+                />
+              }
+            />
+            <Route
+              path="/all-songs"
+              element={
+                <AllSongs
+                  tracks={tracks}
+                  currentId={currentTrack?.id}
+                  onPlay={playById}
+                  onAddToPlaylist={addToPlaylist}
+                  onRemoveFromPlaylist={removeFromPlaylist}
+                  playlist={playlist}
+                />
+              }
+            />
+            <Route
+              path="/myplaylist"
+              element={
+                <MyPlaylist
+                  playlist={playlist}
+                  currentId={currentTrack?.id}
+                  onPlay={(t) => playById(t.id, true)}
+                  onRemove={(i) => removeFromPlaylist(i)}
+                />
+              }
+            />
           </Routes>
         </section>
 
@@ -226,7 +241,9 @@ export default function App() {
           <div className="card-bottem">
             <div className="row between">
               <h3>Your Playlist</h3>
-              <button className="btn ghost" onClick={() => setPlaylist([])}>Clear</button>
+              <button className="btn ghost" onClick={() => setPlaylist([])}>
+                Clear
+              </button>
             </div>
             <Playlist
               playlist={playlist}
