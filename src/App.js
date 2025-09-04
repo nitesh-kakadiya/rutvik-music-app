@@ -154,56 +154,58 @@ export default function App() {
       <Navbar onSearch={(q) => navigate(`/search?q=${encodeURIComponent(q)}`)} />
       <main className="layout">
         <section className="main">
-          <Routes>
-            <Route path="/" element={
-              <Home
-                tracks={TRACKS}
-                currentId={currentTrack?.id}
-                onPlay={playById}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveFromPlaylist={removeFromPlaylist}
-                playlist={playlist}
-              />
-            } />
-            <Route path="/artist/:name" element={
-              <Artist
-                tracks={TRACKS}
-                currentId={currentTrack?.id}
-                onPlay={playById}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveFromPlaylist={removeFromPlaylist}
-                playlist={playlist}
-              />
-            } />
-            <Route path="/search" element={
-              <SearchResults
-                tracks={TRACKS}
-                currentId={currentTrack?.id}
-                onPlay={playById}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveFromPlaylist={removeFromPlaylist}
-                playlist={playlist}
-              />
-            } />
-            <Route path="/all-songs" element={
-              <AllSongs
-                tracks={TRACKS}
-                currentId={currentTrack?.id}
-                onPlay={playById}
-                onAddToPlaylist={addToPlaylist}
-                onRemoveFromPlaylist={removeFromPlaylist}
-                playlist={playlist}
-              />
-            } />
-            <Route path="/myplaylist" element={
-              <MyPlaylist
-                playlist={playlist}
-                currentId={currentTrack?.id}
-                onPlay={(t) => playById(t.id, true)}
-                onRemove={(i) => removeFromPlaylist(i)}
-              />
-            } />
-          </Routes>
+          <section className="main-content">
+            <Routes>
+              <Route path="/" element={
+                <Home
+                  tracks={TRACKS}
+                  currentId={currentTrack?.id}
+                  onPlay={playById}
+                  onAddToPlaylist={addToPlaylist}
+                  onRemoveFromPlaylist={removeFromPlaylist}
+                  playlist={playlist}
+                />
+              } />
+              <Route path="/artist/:name" element={
+                <Artist
+                  tracks={TRACKS}
+                  currentId={currentTrack?.id}
+                  onPlay={playById}
+                  onAddToPlaylist={addToPlaylist}
+                  onRemoveFromPlaylist={removeFromPlaylist}
+                  playlist={playlist}
+                />
+              } />
+              <Route path="/search" element={
+                <SearchResults
+                  tracks={TRACKS}
+                  currentId={currentTrack?.id}
+                  onPlay={playById}
+                  onAddToPlaylist={addToPlaylist}
+                  onRemoveFromPlaylist={removeFromPlaylist}
+                  playlist={playlist}
+                />
+              } />
+              <Route path="/all-songs" element={
+                <AllSongs
+                  tracks={TRACKS}
+                  currentId={currentTrack?.id}
+                  onPlay={playById}
+                  onAddToPlaylist={addToPlaylist}
+                  onRemoveFromPlaylist={removeFromPlaylist}
+                  playlist={playlist}
+                />
+              } />
+              <Route path="/myplaylist" element={
+                <MyPlaylist
+                  playlist={playlist}
+                  currentId={currentTrack?.id}
+                  onPlay={(t) => playById(t.id, true)}
+                  onRemove={(i) => removeFromPlaylist(i)}
+                />
+              } />
+            </Routes>
+          </section>
         </section>
 
         <aside className="sidebar">
@@ -228,12 +230,14 @@ export default function App() {
               <h3>Your Playlist</h3>
               <button className="btn ghost" onClick={() => setPlaylist([])}>Clear</button>
             </div>
-            <Playlist
-              playlist={playlist}
-              currentId={currentTrack?.id}
-              onPlay={(t) => playById(t.id, true)}
-              onRemove={(id) => removeFromPlaylist(id)}
-            />
+            <div className="playlist-scroll">
+              <Playlist
+                playlist={playlist}
+                currentId={currentTrack?.id}
+                onPlay={(t) => playById(t.id, true)}
+                onRemove={(id) => removeFromPlaylist(id)}
+              />
+            </div>
           </div>
         </aside>
       </main>

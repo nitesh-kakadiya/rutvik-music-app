@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
 export default function Navbar({ onSearch }) {
@@ -7,14 +7,14 @@ export default function Navbar({ onSearch }) {
         <header className="navbar">
             {/* Brand / Logo */}
             <div className="brand">
-                <Link to="/">MyMusic</Link>
+                <NavLink to="/">MyMusic</NavLink>
             </div>
 
             {/* Navigation Links */}
             <nav className="links">
-                <Link to="/">Home</Link>
-                <Link to="/all-songs">All Songs</Link>
-                <Link to="/myplaylist">My Playlist</Link>
+                <NavLink to="/" end className="nav-link">Home</NavLink>
+                <NavLink to="/all-songs" className="nav-link">All Songs</NavLink>
+                <NavLink to="/myplaylist" className="nav-link">My Playlist</NavLink>
             </nav>
 
             {/* Search Bar */}
