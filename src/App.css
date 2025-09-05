@@ -613,23 +613,34 @@ a:hover {
     position: fixed;
     bottom: 0;
     top: auto;
-    left: 0;
-    right: 0;
-    width: 100%;
+    left: auto;
+    right: auto;
+    width: calc(100% - 16px);
     height: 60px;
-    /* ✅ slim height */
-    border-radius: 12px 12px 0 0;
-    border: 1px solid #432ecc;
-    background: var(--panel);
-    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: ce;
+    border: 2px solid #432ecc;
+    margin-bottom: 2px;
     z-index: 2000;
+  }
+
+  .card-top {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: calc(100% - 16px);
+    height: 60px;
+    margin-bottom: 2px;
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
 
   /* Hide playlist */
-  .card-bottom {
+  .card-bottem {
     display: none !important;
   }
 
@@ -653,7 +664,6 @@ a:hover {
   .player .title {
     font-size: 13px;
     font-weight: 600;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     flex: 1;
