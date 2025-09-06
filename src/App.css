@@ -32,6 +32,8 @@ html,
 body,
 #root {
   height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -415,19 +417,50 @@ body {
 
 /* ===== MusicPlayer ===== */
 .player .title {
-  font-weight: 800;
   font-size: 16px;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 0;
 }
 
 .player .artist {
   color: var(--muted);
+  display: inline-block;
+  white-space: nowrap;
   margin-top: 2px;
+  padding-left: 0;
+}
+
+.player {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player .title-container,
+.player .artist-container {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  display: block;
+}
+
+/* Marquee state - applied only when overflow */
+/* Marquee state - applied only when overflow */
+.player .title.marquee,
+.player .artist.marquee {
+  display: inline-block;
+  animation: marquee 10s linear infinite;
 }
 
 .controls {
   display: flex;
+  justify-content: space-between;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 8 px;
 }
 
 .time {
@@ -550,6 +583,17 @@ a:hover {
   background: #3a3a3a;
 }
 
+/* ===== Animation ===== */
+@keyframes marquee {
+  0% {
+    transform: translateX(10 0%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
 /* =========================
    Responsive
    ========================= */
@@ -658,15 +702,23 @@ a:hover {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    gap: 10px;
+    gap: 1px;
   }
 
   .player .title {
     font-size: 13px;
     font-weight: 600;
     overflow: hidden;
-    text-overflow: ellipsis;
     flex: 1;
+  }
+
+  .player .title-container {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    /* min-width: 0; */
+    width: 100%;
   }
 
   .player .artist {
@@ -678,6 +730,7 @@ a:hover {
     display: flex;
     gap: 6px;
     margin-top: 0;
+    width: 100%;
   }
 
   .player .controls .btn {
@@ -688,15 +741,14 @@ a:hover {
   /* leave space for bottom bar */
   .main {
     width: 100%;
-    height: auto;
-    min-height: calc(100vh - 140px);
+    min-height: calc(100vh - 193px);
     margin-top: 50px;
-    /* margin-bottom: 60px; */
   }
 
   .main-content {
     max-height: calc(100vh - 200px);
     overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .app {

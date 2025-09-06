@@ -1,5 +1,5 @@
 // src/components/MusicPlayer.jsx
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
 import { Howl } from "howler";
 import {
     FaStepBackward,
@@ -39,6 +39,39 @@ export default function MusicPlayer({
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
     const [volume, setVolume] = useState(0.9);
+    const titleRef = useRef(null);
+    const artistRef = useRef(null);
+    const [titleOverflow, setTitleOverflow] = useState(false);
+    const [artistOverflow, setArtistOverflow] = useState(false);
+    const [titleDur, setTitleDur] = useState("10s");
+    const [artistDur, setArtistDur] = useState("10s");
+
+    // 🔍 check overflow for both
+    useLayoutEffect(() => {
+        const checkOverflow = (ref, setOverflow, setDur) => {
+            const el = ref.current;
+            if (!el) return;
+
+            setTimeout(() => {
+                const scrollW = el.scrollWidth;
+                const clientW = el.clientWidth;
+                console.log(el.className, "scrollWidth:", scrollW, "clientWidth:", clientW);
+
+                if (scrollW > clientW) {
+                    setOverflow(true);
+                    // speed fix: 40px/sec
+                    const pxPerSec = 40;
+                    const dur = scrollW / pxPerSec;
+                    setDur(`${dur}s`);
+                } else {
+                    setOverflow(false);
+                }
+            }, 50);
+        };
+
+        checkOverflow(titleRef, setTitleOverflow, setTitleDur);
+        checkOverflow(artistRef, setArtistOverflow, setArtistDur);
+    }, [track?.title, track?.artist]);
 
     // keep modeRef updated
     useEffect(() => {
@@ -206,43 +239,54 @@ export default function MusicPlayer({
 
     return (
         <div className="player">
-            <div className="row between">
-                <div>
-                    <div className="title">{track.title}</div>
-                    <div className="artist muted">{track.artist}</div>
-                </div>
-                <div className="controls">
-                    <button className="btn" onClick={onPrev}><FaStepBackward /></button>
-                    <button className="btn primary" onClick={toggle}>
-                        {isPlaying ? <FaPause /> : <FaPlay />}
-                    </button>
-                    <button className="btn" onClick={onNext}><FaStepForward /></button>
+            <div className="title-container">
+                <span
+                    ref={titleRef}
+                    className={`title ${titleOverflow ? "marquee" : ""}`}
+                    style={titleOverflow ? { animationDuration: titleDur } : {}}
+                >
+                    {track?.title}
+                </span>
+                <span
+                    ref={artistRef}
+                    className={`artist ${artistOverflow ? "marquee" : ""}`}
+                    style={artistOverflow ? { animationDuration: artistDur } : {}}
+                >
+                    {track?.artist}
+                </span>
+            </div>
 
-                    {/* Mode button with dynamic class */}
-                    <button
-                        className={`btn ghost mode-${mode}`}
-                        onClick={cycleTo}
-                        title={modeTitle}
-                    >
-                        {mode === "normal" && <FaStop />}
-                        {mode === "repeat-one" && (
-                            <>
-                                <FaRedo /> <span style={{ fontSize: 12, marginLeft: 4 }}>1</span>
-                            </>
-                        )}
-                        {mode === "shuffle" && <FaRandom />}
-                        {mode === "repeat-all" && <FaSync />}
-                    </button>
+            <div className="controls">
+                {/* Mode button with dynamic class */}
+                <button
+                    className={`btn ghost mode-${mode}`}
+                    onClick={cycleTo}
+                    title={modeTitle}
+                >
+                    {mode === "normal" && <FaStop />}
+                    {mode === "repeat-one" && (
+                        <>
+                            <FaRedo /> <span style={{ fontSize: 12, marginLeft: 4 }}>1</span>
+                        </>
+                    )}
+                    {mode === "shuffle" && <FaRandom />}
+                    {mode === "repeat-all" && <FaSync />}
+                </button>
 
-                    {/* Playlist (heart) button */}
-                    <button
-                        className={`btn ghost ${isFavorite ? "playlist-remove" : ""}`}
-                        title={isFavorite ? "Remove from Playlist" : "Add to Playlist"}
-                        onClick={handleFavoriteClick}
-                    >
-                        <FaHeart />
-                    </button>
-                </div>
+                <button className="btn" onClick={onPrev}><FaStepBackward /></button>
+                <button className="btn primary" onClick={toggle}>
+                    {isPlaying ? <FaPause /> : <FaPlay />}
+                </button>
+                <button className="btn" onClick={onNext}><FaStepForward /></button>
+
+                {/* Playlist (heart) button */}
+                <button
+                    className={`btn ghost ${isFavorite ? "playlist-remove" : ""}`}
+                    title={isFavorite ? "Remove from Playlist" : "Add to Playlist"}
+                    onClick={handleFavoriteClick}
+                >
+                    <FaHeart />
+                </button>
             </div>
 
             <div className="time">
