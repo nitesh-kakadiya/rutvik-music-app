@@ -1,5 +1,11 @@
 // src/components/MusicPlayer.jsx
-import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react";
+import React, {
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+    useCallback,
+} from "react";
 import { Howl } from "howler";
 import {
     FaStepBackward,
@@ -14,6 +20,7 @@ import {
     FaHeart,
 } from "react-icons/fa";
 
+/* ============ Small utilities ============ */
 function fmt(sec) {
     if (!sec && sec !== 0) return "0:00";
     const m = Math.floor(sec / 60);
@@ -21,6 +28,121 @@ function fmt(sec) {
     return `${m}:${s}`;
 }
 
+/* ============ Spotify-style MarqueeText ============ */
+/**
+ * Props:
+ * - text: string
+ * - speed: px/sec (default 40)
+ * - gap: px between copies (default 48)
+ * - className: optional extra classes for the viewport
+ */
+function MarqueeText({ text, speed = 40, gap = 48, className = "" }) {
+    const viewportRef = useRef(null);   // visible window
+    const trackRef = useRef(null);      // moving track
+    const singleRef = useRef(null);     // single text (for measuring)
+    const [overflow, setOverflow] = useState(false);
+    const [duration, setDuration] = useState(10); // seconds
+    const [distance, setDistance] = useState(0);  // px
+
+    const measure = useCallback(() => {
+        const viewport = viewportRef.current;
+        const single = singleRef.current;
+        if (!viewport || !single) return;
+
+        // measure the natural width of a single copy of the text
+        const textW = Math.ceil(single.scrollWidth);
+        const viewportW = Math.ceil(viewport.clientWidth);
+
+        const willOverflow = textW > viewportW + 1; // +1 to avoid float jitter
+        setOverflow(willOverflow);
+
+        // distance to shift in one loop = text width + gap
+        const dist = textW + gap;
+        setDistance(dist);
+
+        // animation duration based on speed
+        const dur = Math.max(8, dist / Math.max(10, speed)); // clamp min duration a bit
+        setDuration(dur);
+
+        // push CSS vars for the track
+        if (trackRef.current) {
+            trackRef.current.style.setProperty("--marquee-distance", `${dist}px`);
+            trackRef.current.style.setProperty("--marquee-gap", `${gap}px`);
+            trackRef.current.style.setProperty("--marquee-duration", `${dur}s`);
+        }
+    }, [gap, speed]);
+
+    useLayoutEffect(() => {
+        let roViewport, roSingle;
+        let raf;
+        const rAFMeasure = () => {
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(measure);
+        };
+
+        // first measure after layout
+        rAFMeasure();
+
+        // fonts can change width → re-measure after fonts load
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(rAFMeasure).catch(() => { });
+        }
+
+        // resize observers (viewport + text)
+        if (typeof ResizeObserver !== "undefined") {
+            roViewport = new ResizeObserver(rAFMeasure);
+            roSingle = new ResizeObserver(rAFMeasure);
+            if (viewportRef.current) roViewport.observe(viewportRef.current);
+            if (singleRef.current) roSingle.observe(singleRef.current);
+        } else {
+            // window resize fallback
+            window.addEventListener("resize", rAFMeasure);
+        }
+
+        // small timeout to catch late layout shifts
+        const t1 = setTimeout(rAFMeasure, 0);
+        const t2 = setTimeout(rAFMeasure, 300);
+
+        return () => {
+            cancelAnimationFrame(raf);
+            clearTimeout(t1);
+            clearTimeout(t2);
+            if (roViewport) roViewport.disconnect();
+            if (roSingle) roSingle.disconnect();
+            window.removeEventListener("resize", rAFMeasure);
+        };
+    }, [text, measure]);
+
+    return (
+        <div className={`marquee-viewport ${className}`} ref={viewportRef}>
+            <div
+                ref={trackRef}
+                className={`marquee-track ${overflow ? "is-animating" : ""}`}
+                style={{
+                    // safety: keep values even if CSS vars not supported
+                    animationDuration: `${duration}s`,
+                }}
+            >
+                {/* Single copy for measurement and display */}
+                <span ref={singleRef} className="marquee-item">
+                    {text}
+                </span>
+
+                {/* Only render the duplicate when overflowing */}
+                {overflow && (
+                    <>
+                        <span className="marquee-gap" aria-hidden="true" />
+                        <span className="marquee-item" aria-hidden="true">
+                            {text}
+                        </span>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ============ MusicPlayer ============ */
 export default function MusicPlayer({
     track,
     onNext,
@@ -39,44 +161,12 @@ export default function MusicPlayer({
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
     const [volume, setVolume] = useState(0.9);
-    const titleRef = useRef(null);
-    const artistRef = useRef(null);
-    const [titleOverflow, setTitleOverflow] = useState(false);
-    const [artistOverflow, setArtistOverflow] = useState(false);
-    const [titleDur, setTitleDur] = useState("10s");
-    const [artistDur, setArtistDur] = useState("10s");
-
-    // 🔍 check overflow for both
-    useLayoutEffect(() => {
-        const checkOverflow = (ref, setOverflow, setDur) => {
-            const el = ref.current;
-            if (!el) return;
-
-            setTimeout(() => {
-                const scrollW = el.scrollWidth;
-                const clientW = el.clientWidth;
-                console.log(el.className, "scrollWidth:", scrollW, "clientWidth:", clientW);
-
-                if (scrollW > clientW) {
-                    setOverflow(true);
-                    // speed fix: 40px/sec
-                    const pxPerSec = 40;
-                    const dur = scrollW / pxPerSec;
-                    setDur(`${dur}s`);
-                } else {
-                    setOverflow(false);
-                }
-            }, 50);
-        };
-
-        checkOverflow(titleRef, setTitleOverflow, setTitleDur);
-        checkOverflow(artistRef, setArtistOverflow, setArtistDur);
-    }, [track?.title, track?.artist]);
 
     // keep modeRef updated
     useEffect(() => {
         modeRef.current = mode;
         bindOnEnd();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode]);
 
     // Load new track
@@ -100,7 +190,7 @@ export default function MusicPlayer({
 
         howlRef.current = h;
         bindOnEnd();
-        window._howlerRef = () => h; // expose globally for App.jsx
+        window._howlerRef = () => h;
 
         h.once("load", () => {
             let startPos = 0;
@@ -120,7 +210,7 @@ export default function MusicPlayer({
                 setIsPlaying(true);
                 window._autoplayFlag = false;
             } else {
-                setIsPlaying(false); // paused resume
+                setIsPlaying(false);
             }
         });
 
@@ -215,7 +305,6 @@ export default function MusicPlayer({
         const cycleOrder = ["normal", "repeat-one", "shuffle", "repeat-all"];
         const next = cycleOrder[(cycleOrder.indexOf(mode) + 1) % cycleOrder.length];
         setMode(next);
-        // keep saving mode in localStorage (ok for personal setting)
         localStorage.setItem("last_mode", next);
     };
     const modeTitle =
@@ -230,34 +319,20 @@ export default function MusicPlayer({
     const isFavorite = playlist?.some((t) => t.id === track.id);
     const handleFavoriteClick = () => {
         if (!track) return;
-        if (isFavorite) {
-            onRemoveFromPlaylist?.(track.id);
-        } else {
-            onAddToPlaylist?.(track);
-        }
+        if (isFavorite) onRemoveFromPlaylist?.(track.id);
+        else onAddToPlaylist?.(track);
     };
 
     return (
         <div className="player">
-            <div className="title-container">
-                <span
-                    ref={titleRef}
-                    className={`title ${titleOverflow ? "marquee" : ""}`}
-                    style={titleOverflow ? { animationDuration: titleDur } : {}}
-                >
-                    {track?.title}
-                </span>
-                <span
-                    ref={artistRef}
-                    className={`artist ${artistOverflow ? "marquee" : ""}`}
-                    style={artistOverflow ? { animationDuration: artistDur } : {}}
-                >
-                    {track?.artist}
-                </span>
-            </div>
+            {/* Title */}
+            <MarqueeText text={track?.title || ""} speed={40} gap={48} />
 
+            {/* Artist */}
+            <MarqueeText text={track?.artist || ""} speed={38} gap={36} />
+
+            {/* Controls */}
             <div className="controls">
-                {/* Mode button with dynamic class */}
                 <button
                     className={`btn ghost mode-${mode}`}
                     onClick={cycleTo}
@@ -273,13 +348,16 @@ export default function MusicPlayer({
                     {mode === "repeat-all" && <FaSync />}
                 </button>
 
-                <button className="btn" onClick={onPrev}><FaStepBackward /></button>
+                <button className="btn" onClick={onPrev}>
+                    <FaStepBackward />
+                </button>
                 <button className="btn primary" onClick={toggle}>
                     {isPlaying ? <FaPause /> : <FaPlay />}
                 </button>
-                <button className="btn" onClick={onNext}><FaStepForward /></button>
+                <button className="btn" onClick={onNext}>
+                    <FaStepForward />
+                </button>
 
-                {/* Playlist (heart) button */}
                 <button
                     className={`btn ghost ${isFavorite ? "playlist-remove" : ""}`}
                     title={isFavorite ? "Remove from Playlist" : "Add to Playlist"}
@@ -289,6 +367,7 @@ export default function MusicPlayer({
                 </button>
             </div>
 
+            {/* Time bar */}
             <div className="time">
                 <span>{fmt(pos)}</span>
                 <div
@@ -303,6 +382,7 @@ export default function MusicPlayer({
                 <span>{fmt(dur)}</span>
             </div>
 
+            {/* Volume */}
             <div className="volume">
                 <FaVolumeUp style={{ marginRight: "8px" }} />
                 <input

@@ -416,44 +416,63 @@ body {
 }
 
 /* ===== MusicPlayer ===== */
-.player .title {
-  font-size: 16px;
-  font-weight: 600;
-  display: inline-block;
-  white-space: nowrap;
-  padding-left: 0;
-}
 
-.player .artist {
-  color: var(--muted);
-  display: inline-block;
-  white-space: nowrap;
-  margin-top: 2px;
-  padding-left: 0;
-}
-
-.player {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.player .title-container,
-.player .artist-container {
-  position: relative;
-  flex: 1;
+/* ===== Marquee (Spotify-like) ===== */
+.marquee-viewport {
   overflow: hidden;
   white-space: nowrap;
   width: 100%;
-  display: block;
+  position: relative;
 }
 
-/* Marquee state - applied only when overflow */
-/* Marquee state - applied only when overflow */
-.player .title.marquee,
-.player .artist.marquee {
+.marquee-track {
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+  transform: translateX(0);
+  will-change: transform;
+}
+
+.marquee-item {
   display: inline-block;
-  animation: marquee 10s linear infinite;
+  white-space: nowrap;
+  /* Optional: styling */
+  /* font-weight: 700; */
+}
+
+.marquee-gap {
+  display: inline-block;
+  width: var(--marquee-gap, 48px);
+  flex: 0 0 auto;
+}
+
+.marquee-track.is-animating {
+  animation-name: marqueePause;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--marquee-duration, 10s);
+}
+
+@keyframes marqueePause {
+  0% {
+    transform: translateX(0);
+  }
+
+  80% {
+    transform: translateX(calc(-1 * var(--marquee-distance, 0px)));
+  }
+
+  100% {
+    transform: translateX(calc(-1 * var(--marquee-distance, 0px)));
+  }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track.is-animating {
+    animation: none !important;
+    transform: translateX(0) !important;
+  }
 }
 
 .controls {
@@ -583,17 +602,6 @@ a:hover {
   background: #3a3a3a;
 }
 
-/* ===== Animation ===== */
-@keyframes marquee {
-  0% {
-    transform: translateX(10 0%);
-  }
-
-  100% {
-    transform: translateX(-100%);
-  }
-}
-
 /* =========================
    Responsive
    ========================= */
@@ -660,7 +668,7 @@ a:hover {
     left: auto;
     right: auto;
     width: calc(100% - 16px);
-    height: 60px;
+    height: 68px;
     display: flex;
     align-items: center;
     justify-content: ce;
@@ -676,7 +684,7 @@ a:hover {
     left: auto;
     right: auto;
     width: calc(100% - 16px);
-    height: 60px;
+    height: 68px;
     margin-bottom: 2px;
     display: flex;
     align-items: center;
@@ -699,6 +707,7 @@ a:hover {
   /* Slim player row */
   .player {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: space-between;
     width: 100%;
@@ -741,7 +750,7 @@ a:hover {
   /* leave space for bottom bar */
   .main {
     width: 100%;
-    min-height: calc(100vh - 193px);
+    min-height: calc(100vh - 195px) !important;
     margin-top: 50px;
   }
 
