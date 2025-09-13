@@ -19,6 +19,7 @@ import {
     FaSync,
     FaHeart,
 } from "react-icons/fa";
+import MarqueeText from "./MarqueeText";
 
 /* ============ Small utilities ============ */
 function fmt(sec) {
@@ -26,120 +27,6 @@ function fmt(sec) {
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
-}
-
-/* ============ Spotify-style MarqueeText ============ */
-/**
- * Props:
- * - text: string
- * - speed: px/sec (default 40)
- * - gap: px between copies (default 48)
- * - className: optional extra classes for the viewport
- */
-function MarqueeText({ text, speed = 40, gap = 48, className = "" }) {
-    const viewportRef = useRef(null);   // visible window
-    const trackRef = useRef(null);      // moving track
-    const singleRef = useRef(null);     // single text (for measuring)
-    const [overflow, setOverflow] = useState(false);
-    const [duration, setDuration] = useState(10); // seconds
-    const [distance, setDistance] = useState(0);  // px
-
-    const measure = useCallback(() => {
-        const viewport = viewportRef.current;
-        const single = singleRef.current;
-        if (!viewport || !single) return;
-
-        // measure the natural width of a single copy of the text
-        const textW = Math.ceil(single.scrollWidth);
-        const viewportW = Math.ceil(viewport.clientWidth);
-
-        const willOverflow = textW > viewportW + 1; // +1 to avoid float jitter
-        setOverflow(willOverflow);
-
-        // distance to shift in one loop = text width + gap
-        const dist = textW + gap;
-        setDistance(dist);
-
-        // animation duration based on speed
-        const dur = Math.max(8, dist / Math.max(10, speed)); // clamp min duration a bit
-        setDuration(dur);
-
-        // push CSS vars for the track
-        if (trackRef.current) {
-            trackRef.current.style.setProperty("--marquee-distance", `${dist}px`);
-            trackRef.current.style.setProperty("--marquee-gap", `${gap}px`);
-            trackRef.current.style.setProperty("--marquee-duration", `${dur}s`);
-        }
-    }, [gap, speed]);
-
-    useLayoutEffect(() => {
-        let roViewport, roSingle;
-        let raf;
-        const rAFMeasure = () => {
-            cancelAnimationFrame(raf);
-            raf = requestAnimationFrame(measure);
-        };
-
-        // first measure after layout
-        rAFMeasure();
-
-        // fonts can change width → re-measure after fonts load
-        if (document.fonts && document.fonts.ready) {
-            document.fonts.ready.then(rAFMeasure).catch(() => { });
-        }
-
-        // resize observers (viewport + text)
-        if (typeof ResizeObserver !== "undefined") {
-            roViewport = new ResizeObserver(rAFMeasure);
-            roSingle = new ResizeObserver(rAFMeasure);
-            if (viewportRef.current) roViewport.observe(viewportRef.current);
-            if (singleRef.current) roSingle.observe(singleRef.current);
-        } else {
-            // window resize fallback
-            window.addEventListener("resize", rAFMeasure);
-        }
-
-        // small timeout to catch late layout shifts
-        const t1 = setTimeout(rAFMeasure, 0);
-        const t2 = setTimeout(rAFMeasure, 300);
-
-        return () => {
-            cancelAnimationFrame(raf);
-            clearTimeout(t1);
-            clearTimeout(t2);
-            if (roViewport) roViewport.disconnect();
-            if (roSingle) roSingle.disconnect();
-            window.removeEventListener("resize", rAFMeasure);
-        };
-    }, [text, measure]);
-
-    return (
-        <div className={`marquee-viewport ${className}`} ref={viewportRef}>
-            <div
-                ref={trackRef}
-                className={`marquee-track ${overflow ? "is-animating" : ""}`}
-                style={{
-                    // safety: keep values even if CSS vars not supported
-                    animationDuration: `${duration}s`,
-                }}
-            >
-                {/* Single copy for measurement and display */}
-                <span ref={singleRef} className="marquee-item">
-                    {text}
-                </span>
-
-                {/* Only render the duplicate when overflowing */}
-                {overflow && (
-                    <>
-                        <span className="marquee-gap" aria-hidden="true" />
-                        <span className="marquee-item" aria-hidden="true">
-                            {text}
-                        </span>
-                    </>
-                )}
-            </div>
-        </div>
-    );
 }
 
 /* ============ MusicPlayer ============ */

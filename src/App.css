@@ -437,7 +437,8 @@ body {
   display: inline-block;
   white-space: nowrap;
   /* Optional: styling */
-  /* font-weight: 700; */
+  font-weight: 500;
+  color: white;
 }
 
 .marquee-gap {
@@ -602,26 +603,120 @@ a:hover {
   background: #3a3a3a;
 }
 
+
 /* =========================
    Responsive
    ========================= */
+
 @media (max-width: 960px) {
   .layout {
     flex-direction: column;
   }
 
-  .main {
-    padding-right: 0;
-    overflow-y: auto;
-    width: 100%;
-    min-height: calc(100vh - 140px);
+  .app {
+    padding: 80px 8px 60px;
   }
 
-  .sidebar {
-    position: static;
+  /* leave space for bottom bar */
+  .main {
     width: 100%;
-    height: auto;
-    border-left: none;
+    min-height: calc(100vh - 151px);
+    padding-right: 0;
+    background-color: blue;
+    overflow-y: auto;
+  }
+
+  .main-content {
+    max-height: calc(100vh - 155px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Sidebar becomes bottom slim player */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: calc(100% - 16px);
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #432ecc;
+    margin-bottom: 2px;
+    z-index: 2000;
+  }
+
+  .card-top {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: calc(100% - 16px);
+    height: 68px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Hide playlist */
+  .card-bottem {
+    display: none !important;
+  }
+
+  /* Hide full player UI */
+  .card-top h3,
+  .time,
+  .volume,
+  .bar {
+    display: none !important;
+  }
+
+  /* Slim player row */
+  .player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 1px;
+  }
+
+  .player .title {
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .player .title-container {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    /* min-width: 0; */
+    width: 100%;
+  }
+
+  .player .artist {
+    display: none;
+    /* hide artist if you want extra slim */
+  }
+
+  .player .controls {
+    display: flex;
+    gap: 6px;
+    margin-top: 0;
+    width: 100%;
+  }
+
+  .player .controls .btn {
+    padding: 4px 6px;
+    font-size: 14px;
   }
 }
 
@@ -643,6 +738,23 @@ a:hover {
     justify-content: center;
   }
 
+  /* leave space for bottom bar */
+  .main {
+    width: 100%;
+    min-height: calc(100vh - 101px);
+    /* margin-top: 60px; */
+  }
+
+  .main-content {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .app {
+    padding: 80px 8px 60px;
+  }
+
   .songcard {
     flex-direction: column;
     align-items: flex-start;
@@ -652,6 +764,95 @@ a:hover {
     width: 100%;
     justify-content: space-between;
   }
+
+  /* Sidebar becomes bottom slim player */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: calc(100% - 16px);
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #432ecc;
+    margin-bottom: 2px;
+    z-index: 2000;
+  }
+
+  .card-top {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: auto;
+    right: auto;
+    width: calc(100% - 16px);
+    height: 68px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Hide playlist */
+  .card-bottem {
+    display: none !important;
+  }
+
+  /* Hide full player UI */
+  .card-top h3,
+  .time,
+  .volume,
+  .bar {
+    display: none !important;
+  }
+
+  /* Slim player row */
+  .player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 1px;
+  }
+
+  .player .title {
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .player .title-container {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    /* min-width: 0; */
+    width: 100%;
+  }
+
+  .player .artist {
+    display: none;
+    /* hide artist if you want extra slim */
+  }
+
+  .player .controls {
+    display: flex;
+    gap: 6px;
+    margin-top: 0;
+    width: 100%;
+  }
+
+  .player .controls .btn {
+    padding: 4px 6px;
+    font-size: 14px;
+  }
+
+
 
   .footer {
     font-size: 12px;
@@ -671,7 +872,7 @@ a:hover {
     height: 68px;
     display: flex;
     align-items: center;
-    justify-content: ce;
+    justify-content: center;
     border: 2px solid #432ecc;
     margin-bottom: 2px;
     z-index: 2000;
