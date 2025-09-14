@@ -1,14 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import MarqueeText from "./MarqueeText";
 
 export default function SongCard({
     track,
     isActive = false,
-    onPlay,                  // () => void        (already bound by parent)
-    onAddToPlaylist,         // () => void        (already bound by parent)
-    onRemoveFromPlaylist,    // () => void        (already bound by parent)
+    onPlay,                  // () => void
+    onAddToPlaylist,         // () => void
+    onRemoveFromPlaylist,    // () => void
     playlist = [],
-    inPlaylist,              // optional override: true/false. If undefined, auto-detect via playlist
+    inPlaylist,              // optional override: true/false
 }) {
     if (!track) return null;
 
@@ -22,13 +23,25 @@ export default function SongCard({
         <div className={`songcard ${isActive ? "active" : ""}`}>
             {/* Info */}
             <div className="info">
-                <div className="title">{track.title}</div>
-                <div className="artist">
-                    by{" "}
-                    <Link to={`/artist/${encodeURIComponent(track.artist)}`}>
-                        {track.artist}
-                    </Link>
-                </div>
+                {/* Title with marquee */}
+                <MarqueeText
+                    text={track?.title || ""}
+                    speed={40}
+                    gap={48}
+                    className="title"
+                />
+
+                {/* Artist with marquee */}
+                <Link
+                    to={`/artist/${encodeURIComponent(track.artist)}`}
+                    className="artist"
+                >
+                    <MarqueeText
+                        text={track?.artist || ""}
+                        speed={38}
+                        gap={36}
+                    />
+                </Link>
             </div>
 
             {/* Actions */}

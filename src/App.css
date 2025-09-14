@@ -361,15 +361,33 @@ body {
 
 /* ===== SongCard ===== */
 .songcard {
-  background: linear-gradient(180deg, #1a1a1a, #151515);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  overflow: hidden;
+  padding: 12px;
+  background: linear-gradient(180deg, #1a1a1a, #151515);
+  border: 1px solid var(--line);
+  border-radius: 12px;
   transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+.songcard .info {
+  flex: 1;
+  min-width: 0;
+  /* required so marquee text can shrink correctly */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.songcard .actions {
+  flex-shrink: 0;
+  /* icons stay fixed, never squished */
+  display: flex;
+  gap: 8px;
 }
 
 .songcard:hover {
@@ -382,6 +400,7 @@ body {
   border-color: var(--brand);
   box-shadow: 0 0 0 3px var(--brand-soft);
 }
+
 
 .songcard .title {
   font-weight: 700;
@@ -425,12 +444,24 @@ body {
   position: relative;
 }
 
+/* Animate only on hover */
+.songcard:hover .title .marquee-track,
+.songcard:hover .artist .marquee-track {
+  animation-play-state: running;
+}
+
 .marquee-track {
   display: inline-flex;
   align-items: baseline;
   white-space: nowrap;
-  transform: translateX(0);
   will-change: transform;
+  transform: translateX(0);
+  animation-play-state: paused;
+}
+
+/* 🎵 MusicPlayer me hamesha running */
+.player .marquee-track {
+  animation-play-state: running !important;
 }
 
 .marquee-item {
@@ -474,6 +505,13 @@ body {
     animation: none !important;
     transform: translateX(0) !important;
   }
+}
+
+/* ---------- Force reset on non-hover ---------- */
+/* This forces the non-hover state to return to the start (not mid-scroll) */
+.songcard:not(:hover) .marquee-track {
+  animation: none !important;
+  transform: translateX(0) !important;
 }
 
 .controls {
@@ -622,7 +660,6 @@ a:hover {
     width: 100%;
     min-height: calc(100vh - 151px);
     padding-right: 0;
-    background-color: blue;
     overflow-y: auto;
   }
 
