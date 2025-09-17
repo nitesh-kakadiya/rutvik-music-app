@@ -212,11 +212,42 @@ export default function MusicPlayer({
 
     return (
         <div className="player">
-            {/* Title */}
-            <MarqueeText text={track?.title || ""} speed={40} gap={48} />
+            <div className="nowplaying">
+                <div className="cover-wrapper">
+                    {track.cover ? (
+                        <img src={track.cover} alt={track.title} className="cover-img" />
+                    ) : (
+                        <div className="cover-fallback">
+                            {track.title?.[0]?.toUpperCase() || "?"}
+                        </div>
+                    )}
+                    <div className="cover-overlay" onClick={toggle}>
+                        {isPlaying ? <FaPause /> : <FaPlay />}
+                    </div>
+                </div>
 
-            {/* Artist */}
-            <MarqueeText text={track?.artist || ""} speed={38} gap={36} />
+                <div className="track-info">
+                    <MarqueeText text={track?.title || ""} speed={40} gap={48} />
+                    <MarqueeText text={track?.artist || ""} speed={38} gap={36} />
+                </div>
+
+                {/* Right side actions (only mobile visible) */}
+                <div className="nowplaying-actions">
+                    <button
+                        className={`btn btn-like ghost ${isFavorite ? "playlist-remove" : ""}`}
+                        title={isFavorite ? "Remove from Playlist" : "Add to Playlist"}
+                        onClick={handleFavoriteClick}
+                    >
+                        <FaHeart />
+                    </button>
+
+                    <button className="btn" onClick={toggle}>
+                        {isPlaying ? <FaPause /> : <FaPlay />}
+                    </button>
+                </div>
+            </div>
+
+
 
             {/* Controls */}
             <div className="controls">
