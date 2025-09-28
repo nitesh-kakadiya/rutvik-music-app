@@ -722,19 +722,17 @@ a:hover {
   }
 
   .app {
-    padding: 80px 8px 60px;
+    padding: 65px 8px 60px;
   }
 
   /* leave space for bottom bar */
   .main {
     width: 100%;
-    min-height: calc(100vh - 151px);
-    padding-right: 0;
-    overflow-y: auto;
+    max-height: calc(100vh - 138px);
+    overflow-y: hidden;
   }
 
   .main-content {
-    max-height: calc(100vh - 155px);
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -929,12 +927,12 @@ a:hover {
   /* leave space for bottom bar */
   .main {
     width: 100%;
-    min-height: calc(100vh - 101px);
-    /* margin-top: 60px; */
+    max-height: calc(100vh - 208px);
+    margin-top: 55px;
+    overflow-y: hidden;
   }
 
   .main-content {
-    max-height: calc(100vh - 100px);
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -1156,24 +1154,22 @@ a:hover {
     gap: 1px;
   }
 
-.nowplaying-actions .btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  padding: .50rem .5rem;
-}
+  .nowplaying-actions .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    padding: .50rem .5rem;
+  }
 
 
   /* leave space for bottom bar */
   .main {
     width: 100%;
-    min-height: calc(100vh - 195px) !important;
-    margin-top: 50px;
+    max-height: calc(100vh - 208px);
   }
 
   .main-content {
-    max-height: calc(100vh - 200px);
     overflow-y: auto;
     overflow-x: hidden;
   }

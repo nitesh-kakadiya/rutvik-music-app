@@ -227,8 +227,8 @@ export default function MusicPlayer({
                 </div>
 
                 <div className="track-info">
-                    <MarqueeText text={track?.title || ""} speed={40} gap={48} />
-                    <MarqueeText text={track?.artist || ""} speed={40} gap={48} />
+                    <MarqueeText text={track?.title || ""} speed={20} gap={48} />
+                    <MarqueeText text={track?.artist || ""} speed={20} gap={48} />
                 </div>
 
                 {/* Right side actions (only mobile visible) */}

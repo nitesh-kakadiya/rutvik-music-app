@@ -26,7 +26,7 @@ export default function SongCard({
                 {/* Title with marquee */}
                 <MarqueeText
                     text={track?.title || ""}
-                    speed={40}
+                    speed={20}
                     gap={48}
                     className="title"
                 />
@@ -38,8 +38,8 @@ export default function SongCard({
                 >
                     <MarqueeText
                         text={track?.artist || ""}
-                        speed={38}
-                        gap={36}
+                        speed={20}
+                        gap={48}
                     />
                 </Link>
             </div>

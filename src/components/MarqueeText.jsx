@@ -8,7 +8,7 @@ import React, { useRef, useState, useLayoutEffect, useCallback } from "react";
  * - gap: px between copies (default 48)
  * - className: optional extra classes for the viewport
  */
-export default function MarqueeText({ text, speed = 40, gap = 48, className = "" }) {
+export default function MarqueeText({ text, speed = 20, gap = 48, className = "" }) {
     const viewportRef = useRef(null);
     const trackRef = useRef(null);
     const singleRef = useRef(null);
