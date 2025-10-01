@@ -271,8 +271,10 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  background: var(--bg-elev);
-  border-bottom: 1px solid var(--line);
+  color: #e6190e;
+  border: 2px solid #e6190e;
+  background: rgb(230, 25, 14, 0.15);
+  border-radius: 12px;
   padding: 12px 14px;
   display: grid;
   grid-template-columns: 1fr auto auto;
