@@ -14,6 +14,7 @@ import AllSongs from "./pages/AllSongs";
 import MyPlaylist from "./pages/MyPlaylist";
 
 import "./App.css";
+import BottomNav from "./components/BottomNav";
 
 // auto import songs
 function importAll(r) {
@@ -152,6 +153,7 @@ export default function App() {
   return (
     <div className="app">
       <Navbar onSearch={(q) => navigate(`/search?q=${encodeURIComponent(q)}`)} />
+      <BottomNav />
       <main className="layout">
         <section className="main">
           <section className="main-content">

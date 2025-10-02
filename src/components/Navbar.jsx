@@ -11,8 +11,9 @@ export default function Navbar({ onSearch }) {
             </div>
 
             {/* Navigation Links */}
+
             <nav className="links">
-                <NavLink to="/" end className="nav-link">Home</NavLink>
+                <NavLink to="/" end className="nav-link"> Home</NavLink>
                 <NavLink to="/all-songs" className="nav-link">All Songs</NavLink>
                 <NavLink to="/myplaylist" className="nav-link">My Playlist</NavLink>
             </nav>

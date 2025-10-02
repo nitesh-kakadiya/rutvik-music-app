@@ -352,6 +352,79 @@ body {
   background: rgba(255, 77, 166, 0.15);
 }
 
+/* ===== BottomNav  ===== */
+/* Navbar (Desktop) */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #111;
+  padding: 10px 20px;
+  color: white;
+}
+
+.navbar .nav-link {
+  margin: 0 10px;
+  text-decoration: none;
+  color: #ccc;
+}
+
+.navbar .nav-link.active {
+  color: #1db954;
+  /* Spotify green */
+}
+
+/* Bottom Nav (Mobile) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #111;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid #333;
+  z-index: 5000;
+}
+
+.bottom-nav .nav-link {
+  color: #aaa;
+  text-decoration: none;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bottom-nav .nav-link.active {
+  color: #1db954;
+}
+
+/* Responsive: show only one at a time */
+@media (max-width: 768px) {
+  .navbar {
+    display: none;
+    /* hide top nav in mobile */
+  }
+
+  .bottom-nav {
+    display: flex;
+  }
+}
+
+@media (min-width: 769px) {
+  .bottom-nav {
+    display: none;
+    /* hide bottom nav in desktop */
+  }
+}
+
+
+
+
+
 /* ===== Pages ===== */
 .page h2 {
   margin: 4px 0 12px;
@@ -929,8 +1002,8 @@ a:hover {
   /* leave space for bottom bar */
   .main {
     width: 100%;
-    max-height: calc(100vh - 208px);
-    margin-top: 55px;
+    max-height: calc(100vh - 138px);
+    margin-top: -7px;
     overflow-y: hidden;
   }
 
@@ -940,7 +1013,7 @@ a:hover {
   }
 
   .app {
-    padding: 80px 8px 60px;
+    padding: 10px 8px 60px;
   }
 
   .songcard {
@@ -956,7 +1029,7 @@ a:hover {
   /* Sidebar becomes bottom slim player */
   .sidebar {
     position: fixed;
-    bottom: 0;
+    bottom: 62px;
     top: auto;
     left: auto;
     right: auto;
@@ -972,7 +1045,7 @@ a:hover {
 
   .card-top {
     position: fixed;
-    bottom: 0;
+    bottom: 62px;
     top: auto;
     left: auto;
     right: auto;
@@ -1105,7 +1178,7 @@ a:hover {
   /* Sidebar becomes bottom slim player */
   .sidebar {
     position: fixed;
-    bottom: 0;
+    bottom: 62px;
     top: auto;
     left: auto;
     right: auto;
@@ -1121,7 +1194,7 @@ a:hover {
 
   .card-top {
     position: fixed;
-    bottom: 0;
+    bottom: 62px;
     top: auto;
     left: auto;
     right: auto;
@@ -1168,7 +1241,7 @@ a:hover {
   /* leave space for bottom bar */
   .main {
     width: 100%;
-    max-height: calc(100vh - 208px);
+    max-height: calc(100vh - 138px);
   }
 
   .main-content {
@@ -1177,7 +1250,7 @@ a:hover {
   }
 
   .app {
-    padding: 80px 8px 60px;
+    padding: 10px 8px 60px;
   }
 
   .navbar {
