@@ -484,7 +484,7 @@ body {
   height: 100%;
   border-radius: 8px;
   object-fit: cover;
-  font-size: 22px;
+  font-size: 35px;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -810,6 +810,7 @@ a:hover {
   .main-content {
     overflow-y: auto;
     overflow-x: hidden;
+    padding-bottom: 65px;
   }
 
   /* Sidebar becomes bottom slim player */
@@ -1010,6 +1011,7 @@ a:hover {
   .main-content {
     overflow-y: auto;
     overflow-x: hidden;
+    
   }
 
   .app {
