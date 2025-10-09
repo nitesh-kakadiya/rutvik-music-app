@@ -7,22 +7,18 @@ export default function BottomNav() {
         <nav className="bottom-nav">
             <NavLink to="/" end className="nav-link">
                 <FaHome size={22} />
-                <span>Home</span>
             </NavLink>
 
-            {/* <NavLink to="/" end className="nav-link">
+            <NavLink to="/search" end className="nav-link">
                 <FaSearch size={22} />
-                <span>Search</span>
-            </NavLink> */}
+            </NavLink>
 
             <NavLink to="/all-songs" className="nav-link">
                 <FaMusic size={22} />
-                <span>All Songs</span>
             </NavLink>
 
             <NavLink to="/myplaylist" className="nav-link">
                 <FaList size={22} />
-                <span>My Playlist</span>
             </NavLink>
         </nav>
     );

@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { FaHome, FaMusic, FaList } from "react-icons/fa";
 import SearchBar from "./SearchBar";
 
 export default function Navbar({ onSearch }) {
@@ -13,9 +14,15 @@ export default function Navbar({ onSearch }) {
             {/* Navigation Links */}
 
             <nav className="links">
-                <NavLink to="/" end className="nav-link"> Home</NavLink>
-                <NavLink to="/all-songs" className="nav-link">All Songs</NavLink>
-                <NavLink to="/myplaylist" className="nav-link">My Playlist</NavLink>
+                <NavLink to="/" end className="nav-link">
+                    <FaHome size={22} />
+                </NavLink>
+                <NavLink to="/all-songs" className="nav-link">
+                    <FaMusic size={22} />
+                </NavLink>
+                <NavLink to="/myplaylist" className="nav-link">
+                    <FaList size={22} />
+                </NavLink>
             </nav>
 
             {/* Search Bar */}

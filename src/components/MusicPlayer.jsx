@@ -1,7 +1,6 @@
 // src/components/MusicPlayer.jsx
 import React, {
     useEffect,
-    useLayoutEffect,
     useRef,
     useState,
     useCallback,
