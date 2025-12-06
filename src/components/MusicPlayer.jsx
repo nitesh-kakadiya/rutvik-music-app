@@ -211,7 +211,17 @@ export default function MusicPlayer({
 
     return (
         <div className="player">
-            <div className="nowplaying">
+            <div
+                className="nowplaying"
+                onClick={(e) => {
+                    if (window.innerWidth >= 961) return; // only mobile
+                    // If the click is NOT on a button
+                    if (!e.target.closest("button")) {
+                        window.location.href = "/player";
+                    }
+                }}
+            >
+
                 <div className="cover-wrapper">
                     {track.cover ? (
                         <img src={track.cover} alt={track.title} className="cover-img" />
@@ -235,15 +245,24 @@ export default function MusicPlayer({
                     <button
                         className={`btn like-btn ${isFavorite ? "playlist-remove" : ""}`}
                         title={isFavorite ? "Remove from Playlist" : "Add to Playlist"}
-                        onClick={handleFavoriteClick}
+                        onClick={(e) => {
+                            e.stopPropagation(); // 🔹 prevent parent click
+                            handleFavoriteClick();
+                        }}
                     >
                         <FaHeart color={isFavorite ? "red" : "white"} />
-
                     </button>
 
-                    <button className="btn" onClick={toggle}>
+                    <button
+                        className="btn"
+                        onClick={(e) => {
+                            e.stopPropagation(); // 🔹 prevent parent click
+                            toggle();
+                        }}
+                    >
                         {isPlaying ? <FaPause /> : <FaPlay />}
                     </button>
+
                 </div>
             </div>
 

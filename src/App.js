@@ -15,6 +15,7 @@ import MyPlaylist from "./pages/MyPlaylist";
 
 import "./App.css";
 import BottomNav from "./components/BottomNav";
+import FullPlayer from "./pages/FullPlayer";
 
 // auto import songs
 function importAll(r) {
@@ -206,6 +207,24 @@ export default function App() {
                   onRemove={(i) => removeFromPlaylist(i)}
                 />
               } />
+              <Route
+                path="/player"
+                element={
+                  <FullPlayer
+                    track={currentTrack}
+                    onPlay={() => playById(currentTrack?.id, true)}
+                    onNext={playNext}
+                    onPrev={playPrev}
+                    playlist={playlist}
+                    onAddToPlaylist={addToPlaylist}
+                    onRemoveFromPlaylist={removeFromPlaylist}
+                    mode={mode}
+                    setMode={setMode}
+                    seek={seekPos}
+                  />
+                }
+              />
+
             </Routes>
           </section>
         </section>
