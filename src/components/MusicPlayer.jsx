@@ -153,16 +153,18 @@ export default function MusicPlayer({
         }
     }, []);
 
-    const seekTo = useCallback(
-        (fraction) => {
-            const h = howlRef.current;
-            if (!h || !dur) return;
-            const t = Math.max(0, Math.min(1, fraction)) * dur;
-            h.seek(t);
-            setPos(t);
-        },
-        [dur]
-    );
+    /* ============ Seek Handling ============ */
+    const onSeek = (e) => {
+        const h = howlRef.current;
+        if (!h || !dur) return;
+
+        const rect = e.target.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        const newTime = Math.max(0, Math.min(1, percent)) * dur;
+
+        h.seek(newTime);
+        setPos(newTime);
+    };
 
     // 🎧 Media Session API
     useEffect(() => {
@@ -305,17 +307,16 @@ export default function MusicPlayer({
             </div>
 
             {/* Time bar */}
-            <div className="time">
-                <span>{fmt(pos)}</span>
-                <div
-                    className="bar"
-                    onClick={(e) => {
-                        const r = e.currentTarget.getBoundingClientRect();
-                        seekTo((e.clientX - r.left) / r.width);
-                    }}
-                >
-                    <div className="bar-fill" style={{ width: `${progress * 100}%` }} />
+            <div className="fp-time-slider">
+                <div className="fp-time-bar" onClick={onSeek}>
+                    <div
+                        className="fp-time-fill"
+                        style={{ width: `${(pos / dur) * 100}%` }}
+                    />
                 </div>
+            </div>
+            <div className="fp-time">
+                <span>{fmt(pos)}</span>
                 <span>{fmt(dur)}</span>
             </div>
 

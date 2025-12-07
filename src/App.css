@@ -149,26 +149,30 @@ body {
 /* Mode highlight colors */
 .btn.ghost.mode-normal {
   color: #e74c3c;
-  border-color: #e74c3c;
-  background: rgba(231, 76, 60, 0.15);
+  padding: 0;
+  border: none;
+  font-size: 25px;
 }
 
 .btn.ghost.mode-repeat-one {
   color: #f1c40f;
-  border-color: #f1c40f;
-  background: rgba(241, 196, 15, 0.15);
+  padding: 0;
+  border: none;
+  font-size: 25px;
 }
 
 .btn.ghost.mode-shuffle {
-  color: #3498db;
-  border-color: #3498db;
-  background: rgba(52, 152, 219, 0.15);
+  color: blue;
+  padding: 0;
+  border: none;
+  font-size: 25px;
 }
 
 .btn.ghost.mode-repeat-all {
   color: #2ecc71;
-  border-color: #2ecc71;
-  background: rgba(46, 204, 113, 0.15);
+  padding: 0;
+  border: none;
+  font-size: 25px;
 }
 
 .btn.ghost:hover {
@@ -669,37 +673,6 @@ body {
   margin-top: 8 px;
 }
 
-.time {
-  display: grid;
-  grid-template-columns: 48px 1fr 48px;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  color: #ddd;
-}
-
-.bar {
-  height: 10px;
-  background: #2a2a2a;
-  border-radius: 999px;
-  overflow: hidden;
-  position: relative;
-  cursor: pointer;
-}
-
-.bar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .04), transparent);
-  pointer-events: none;
-}
-
-.bar-fill {
-  height: 100%;
-  width: 0%;
-  background: var(--brand);
-}
 
 .volume {
   display: flex;
@@ -807,45 +780,53 @@ a:hover {
 .fp-back {
   align-self: flex-start;
   margin-bottom: 10px;
-  background: none;
+  background: transparent;
   color: white;
   border: none;
 }
 
 .fp-cover img,
 .fp-fallback {
-  width: 80%;
-  max-width: 350px;
+  width: 100%;
   height: auto;
   border-radius: 16px;
   margin: 20px 0;
 }
 
 .fp-fallback {
+  width: 90vw;
+  height: 50vh;
   background: #333;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 80px;
+  font-size: 200px;
 }
 
 .fp-info {
-  text-align: center;
-  margin-bottom: 30px;
+  width: 100%;
+  text-align: start;
 }
 
 .fp-controls {
+  width: 100%;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 40px;
-  margin-bottom: 30px;
+}
+
+.fp-next {
+  background: transparent;
+  border: none;
+  color: white;
 }
 
 .fp-play {
   background: white;
+  border: none;
   color: black;
-  width: 65px;
-  height: 65px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -856,6 +837,43 @@ a:hover {
   border: none;
   background: none;
   margin-top: 10px;
+  /* background-color: red; */
+}
+
+
+.fp-time-slider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.fp-time {
+  width: 100%;
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.8);
+  ;
+  display: flex;
+  justify-content: space-between;
+}
+
+.fp-time-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+}
+
+.fp-time-fill {
+  height: 100%;
+  width: 500px;
+  background: white;
+  border-radius: 4px;
+  transition: width 0.2s linear;
 }
 
 
@@ -1134,6 +1152,10 @@ a:hover {
     justify-content: space-between;
   }
 
+  .fp-time {
+    display: none;
+  }
+
   /* Hide playlist */
   .card-bottem {
     display: none !important;
@@ -1291,8 +1313,7 @@ a:hover {
   /* Hide full player UI */
   .card-top h3,
   .time,
-  .volume,
-  .bar {
+  .volume {
     display: none !important;
   }
 
