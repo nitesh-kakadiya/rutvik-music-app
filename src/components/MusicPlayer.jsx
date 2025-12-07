@@ -315,7 +315,7 @@ export default function MusicPlayer({
                     />
                 </div>
             </div>
-            <div className="fp-time">
+            <div className="fp-time mini">
                 <span>{fmt(pos)}</span>
                 <span>{fmt(dur)}</span>
             </div>

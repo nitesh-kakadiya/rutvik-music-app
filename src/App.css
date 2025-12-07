@@ -837,7 +837,6 @@ a:hover {
   border: none;
   background: none;
   margin-top: 10px;
-  /* background-color: red; */
 }
 
 
@@ -854,7 +853,6 @@ a:hover {
   width: 100%;
   margin-top: 5px;
   color: rgba(255, 255, 255, 0.8);
-  ;
   display: flex;
   justify-content: space-between;
 }
@@ -982,6 +980,10 @@ a:hover {
     gap: 6px;
     margin-top: 0;
     width: 100%;
+  }
+
+  .mini {
+    display: none;
   }
 
   .player .controls .btn {
@@ -1150,10 +1152,6 @@ a:hover {
     display: flex;
     align-items: center;
     justify-content: space-between;
-  }
-
-  .fp-time {
-    display: none;
   }
 
   /* Hide playlist */
