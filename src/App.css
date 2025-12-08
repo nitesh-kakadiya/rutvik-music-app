@@ -122,6 +122,7 @@ body {
 
 .like-btn {
   font-size: 22px;
+  padding: 0;
   background: none;
   border: none;
   color: white;
@@ -162,7 +163,7 @@ body {
 }
 
 .btn.ghost.mode-shuffle {
-  color: blue;
+  color: rgb(27, 129, 129);
   padding: 0;
   border: none;
   font-size: 25px;
@@ -666,11 +667,29 @@ body {
   transform: translateX(0) !important;
 }
 
-.controls {
+.mp-controls {
+  width: 100%;
   display: flex;
   justify-content: space-between;
-  gap: 8px;
-  margin-top: 8 px;
+  align-items: center;
+}
+
+.mp-next {
+  background: transparent;
+  border: none;
+  color: white;
+}
+
+.mp-play {
+  background: white;
+  border: none;
+  color: black;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 
@@ -832,6 +851,8 @@ a:hover {
   align-items: center;
   justify-content: center;
 }
+
+
 
 .fp-fav {
   border: none;
@@ -1047,6 +1068,10 @@ a:hover {
     display: flex;
     flex-direction: column;
     gap: 3px;
+  }
+
+  .mp-controls {
+    display: none;
   }
 
   .track-info .title,

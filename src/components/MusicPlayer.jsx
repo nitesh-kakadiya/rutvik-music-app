@@ -232,9 +232,7 @@ export default function MusicPlayer({
                             {track.title?.[0]?.toUpperCase() || "?"}
                         </div>
                     )}
-                    <div className="cover-overlay" onClick={toggle}>
-                        {isPlaying ? <FaPause /> : <FaPlay />}
-                    </div>
+                    
                 </div>
 
                 <div className="track-info">
@@ -271,7 +269,7 @@ export default function MusicPlayer({
 
 
             {/* Controls */}
-            <div className="controls">
+            <div className="mp-controls">
                 <button
                     className={`btn ghost mode-${mode}`}
                     onClick={cycleTo}
@@ -287,14 +285,14 @@ export default function MusicPlayer({
                     {mode === "repeat-all" && <FaSync />}
                 </button>
 
-                <button className="btn" onClick={onPrev}>
-                    <FaStepBackward />
+                <button className="mp-next" onClick={onPrev}>
+                    <FaStepBackward size={25} />
                 </button>
-                <button className="btn primary" onClick={toggle}>
-                    {isPlaying ? <FaPause /> : <FaPlay />}
+                <button className="mp-play" onClick={toggle}>
+                    {isPlaying ? <FaPause size={18} /> : <FaPlay size={18} />}
                 </button>
-                <button className="btn" onClick={onNext}>
-                    <FaStepForward />
+                <button className="mp-next" onClick={onNext}>
+                    <FaStepForward size={25} />
                 </button>
 
                 <button
