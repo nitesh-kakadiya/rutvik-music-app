@@ -887,6 +887,16 @@ a:hover {
   cursor: pointer;
 }
 
+.fp-time-bar-mini {
+  display: none;
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+}
+
 .fp-time-fill {
   height: 100%;
   width: 500px;
@@ -1025,6 +1035,19 @@ a:hover {
     height: 50px;
     flex-shrink: 0;
     position: relative;
+  }
+
+  .fp-time-bar {
+    display: none;
+  }
+
+  .fp-time-slider {
+    margin: 0;
+  }
+
+  .fp-time-bar-mini {
+    display: block;
+    height: 2px;
   }
 
   .cover-img,

@@ -232,7 +232,7 @@ export default function MusicPlayer({
                             {track.title?.[0]?.toUpperCase() || "?"}
                         </div>
                     )}
-                    
+
                 </div>
 
                 <div className="track-info">
@@ -266,6 +266,16 @@ export default function MusicPlayer({
                 </div>
             </div>
 
+
+            {/* Time bar */}
+            <div className="fp-time-slider">
+                <div className="fp-time-bar-mini" onClick={onSeek}>
+                    <div
+                        className="fp-time-fill"
+                        style={{ width: `${(pos / dur) * 100}%` }}
+                    />
+                </div>
+            </div>
 
 
             {/* Controls */}
