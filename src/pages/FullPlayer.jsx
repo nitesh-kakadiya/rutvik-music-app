@@ -140,7 +140,7 @@ export default function FullPlayer({
 
             {/* ========= Spotify-Style Time Slider ========= */}
             <div className="fp-time-slider">
-                <div className="fp-time-bar" onClick={onSeek}>
+                <div style={{ height: "4px",marginTop:"7px" }} className="fp-time-bar-mini" onClick={onSeek}>
                     <div
                         className="fp-time-fill"
                         style={{ width: `${(pos / dur) * 100}%` }}
