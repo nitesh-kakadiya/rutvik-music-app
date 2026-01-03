@@ -31,6 +31,7 @@ function fmt(sec) {
 /* ============ MusicPlayer ============ */
 export default function MusicPlayer({
     track,
+    onExpand,
     onNext,
     onPrev,
     onEnded,
@@ -43,10 +44,21 @@ export default function MusicPlayer({
 }) {
     const howlRef = useRef(null);
     const modeRef = useRef(mode);
-    const [isPlaying, setIsPlaying] = useState(false);
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
     const [volume, setVolume] = useState(0.9);
+
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const h = howlRef.current;
+            if (h) setIsPlaying(h.playing());
+        }, 300);
+
+        return () => clearInterval(interval);
+    }, []);
+
 
     // keep modeRef updated
     useEffect(() => {
@@ -219,7 +231,7 @@ export default function MusicPlayer({
                     if (window.innerWidth >= 961) return; // only mobile
                     // If the click is NOT on a button
                     if (!e.target.closest("button")) {
-                        window.location.href = "/player";
+                        onExpand?.();
                     }
                 }}
             >

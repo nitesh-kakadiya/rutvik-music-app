@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
     FaArrowLeft,
     FaStepBackward,
@@ -13,7 +13,6 @@ import {
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import MarqueeText from "../components/MarqueeText";
-import { useNavigate } from "react-router-dom";
 
 function fmt(sec) {
     if (!sec && sec !== 0) return "0:00";
@@ -23,6 +22,8 @@ function fmt(sec) {
 }
 
 export default function FullPlayer({
+    isOpen,
+    onCollapse,
     track,
     onNext,
     onPrev,
@@ -34,7 +35,6 @@ export default function FullPlayer({
     setMode,
 }) {
     const howlRef = useRef(null);
-    const navigate = useNavigate();
 
     const [isPlaying, setIsPlaying] = useState(false);
     const [pos, setPos] = useState(0);
@@ -115,11 +115,13 @@ export default function FullPlayer({
     return (
         <motion.div
             className="fullplayer"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ y: "100%" }}
+            animate={{ y: isOpen ? 0 : "100%" }}
+            transition={{ type: "spring", damping: 30 }}
+            style={{ pointerEvents: isOpen ? "auto" : "none" }}
         >
             {/* Back Button */}
-            <button className="fp-back" onClick={() => navigate(-1)}>
+            <button className="fp-back" onClick={onCollapse}>
                 <FaArrowLeft size={24} />
             </button>
 
@@ -140,7 +142,7 @@ export default function FullPlayer({
 
             {/* ========= Spotify-Style Time Slider ========= */}
             <div className="fp-time-slider">
-                <div style={{ height: "4px",marginTop:"7px" }} className="fp-time-bar-mini" onClick={onSeek}>
+                <div style={{ height: "4px", marginTop: "7px" }} className="fp-time-bar-mini" onClick={onSeek}>
                     <div
                         className="fp-time-fill"
                         style={{ width: `${(pos / dur) * 100}%` }}
