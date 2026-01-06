@@ -592,19 +592,23 @@ body {
 /* ===== Marquee (Spotify-like) ===== */
 .marquee-viewport {
   overflow: hidden;
-  white-space: nowrap;
   width: 100%;
   position: relative;
 }
 
-/* Animate only on hover */
-.songcard:hover .title .marquee-track,
-.songcard:hover .artist .marquee-track {
+/* Hover → Desktop */
+.songcard:hover .marquee-track {
   animation-play-state: running;
 }
 
+/* Active → Mobile + Desktop */
+.songcard.active .marquee-track {
+  animation-play-state: running !important;
+}
+
 .marquee-track {
-  display: inline-flex;
+  display: flex;
+  width: max-content;
   align-items: baseline;
   white-space: nowrap;
   will-change: transform;
@@ -662,7 +666,7 @@ body {
 
 /* ---------- Force reset on non-hover ---------- */
 /* This forces the non-hover state to return to the start (not mid-scroll) */
-.songcard:not(:hover) .marquee-track {
+.songcard:not(:hover):not(.active) .marquee-track {
   animation: none !important;
   transform: translateX(0) !important;
 }
@@ -1106,6 +1110,15 @@ a:hover {
     white-space: nowrap;
   }
 
+  /* 🔥 REQUIRED FOR MOBILE MARQUEE */
+  .track-info,
+  .title,
+  .title-container,
+  .marquee-viewport {
+    min-width: 0;
+  }
+
+
   /* 👉 Show only on mobile */
   .nowplaying-actions {
     display: flex;
@@ -1312,12 +1325,25 @@ a:hover {
     flex-shrink: 0;
   }
 
+  .songcard .title,
+  .songcard .artist,
+  .songcard .marquee-viewport {
+    min-width: 0;
+  }
+
   .nowplaying-actions .btn {
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 22px;
   }
+
+  .songcard.active .marquee-track.is-animating {
+    animation-name: marqueePause !important;
+    animation-duration: var(--marquee-duration, 10s) !important;
+    animation-play-state: running !important;
+  }
+
 }
 
 @media (max-width: 480px) {

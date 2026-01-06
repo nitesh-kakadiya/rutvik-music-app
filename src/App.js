@@ -41,6 +41,7 @@ export default function App() {
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [seekPos, setSeekPos] = useState(0);
+  const [activeQueue, setActiveQueue] = useState("all");
   const [playlist, setPlaylist] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("playlist_v1") || "[]");
@@ -58,42 +59,58 @@ export default function App() {
     localStorage.setItem("playlist_v1", JSON.stringify(playlist));
   }, [playlist]);
 
+  const currentQueue = useMemo(() => {
+    return activeQueue === "playlist" ? playlist : TRACKS;
+  }, [activeQueue, playlist]);
+
+
   const currentTrack = useMemo(
-    () => (currentIndex != null ? TRACKS[currentIndex] : null),
-    [currentIndex]
+    () => (currentIndex != null ? currentQueue[currentIndex] : null),
+    [currentIndex, currentQueue]
   );
 
-  const playById = useCallback((id, autoplay = false, resumeTime = 0) => {
-    const idx = TRACKS.findIndex((t) => t.id === id);
-    if (idx !== -1) {
-      if (autoplay) window._autoplayFlag = true;
-      setCurrentIndex((prev) => (prev === idx ? null : idx));
-      setTimeout(() => setCurrentIndex(idx), 0);
-      setSeekPos(resumeTime || 0);
-    }
-  }, []);
+  const playById = useCallback(
+    (id, autoplay = false, resumeTime = 0, queue = "all") => {
+      const list = queue === "playlist" ? playlist : TRACKS;
+      const idx = list.findIndex((t) => t.id === id);
+
+      if (idx !== -1) {
+        setActiveQueue(queue);
+        if (autoplay) window._autoplayFlag = true;
+        setCurrentIndex(idx);
+        setSeekPos(resumeTime || 0);
+      }
+    },
+    [playlist]
+  );
 
   const playNext = useCallback(() => {
+    if (!currentQueue.length) return;
+
     window._autoplayFlag = true;
+
     if (mode === "shuffle") {
-      const random = Math.floor(Math.random() * TRACKS.length);
-      setCurrentIndex(random);
+      setCurrentIndex(Math.floor(Math.random() * currentQueue.length));
     } else {
-      setCurrentIndex((prev) => (prev + 1) % TRACKS.length);
+      setCurrentIndex((prev) => (prev + 1) % currentQueue.length);
     }
     setSeekPos(0);
-  }, [mode]);
+  }, [mode, currentQueue]);
 
   const playPrev = useCallback(() => {
+    if (!currentQueue.length) return;
+
     window._autoplayFlag = true;
+
     if (mode === "shuffle") {
-      const random = Math.floor(Math.random() * TRACKS.length);
-      setCurrentIndex(random);
+      setCurrentIndex(Math.floor(Math.random() * currentQueue.length));
     } else {
-      setCurrentIndex((prev) => (prev - 1 + TRACKS.length) % TRACKS.length);
+      setCurrentIndex(
+        (prev) => (prev - 1 + currentQueue.length) % currentQueue.length
+      );
     }
     setSeekPos(0);
-  }, [mode]);
+  }, [mode, currentQueue]);
 
   const handleEnded = useCallback(() => {
     if (mode === "repeat-all" || mode === "shuffle") {
@@ -115,6 +132,27 @@ export default function App() {
         : prev.filter((t) => t.id !== idOrIndex)
     );
   }, []);
+
+  useEffect(() => {
+    if (!isPlayerExpanded) return;
+
+    // Push a dummy state when FullPlayer opens
+    window.history.pushState({ fullPlayer: true }, "");
+
+    const handleBack = (e) => {
+      if (isPlayerExpanded) {
+        e.preventDefault();
+        setIsPlayerExpanded(false); // 👈 collapse FullPlayer
+      }
+    };
+
+    window.addEventListener("popstate", handleBack);
+
+    return () => {
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, [isPlayerExpanded]);
+
 
   // 🔹 load last track from Render backend
   useEffect(() => {
@@ -204,7 +242,7 @@ export default function App() {
                 <MyPlaylist
                   playlist={playlist}
                   currentId={currentTrack?.id}
-                  onPlay={(t) => playById(t.id, true)}
+                  onPlay={(t) => playById(t.id, true, 0, "playlist")}
                   onRemove={(i) => removeFromPlaylist(i)}
                 />
               } />
@@ -256,7 +294,7 @@ export default function App() {
               <Playlist
                 playlist={playlist}
                 currentId={currentTrack?.id}
-                onPlay={(t) => playById(t.id, true)}
+                onPlay={(t) => playById(t.id, true, 0, "playlist")}
                 onRemove={(id) => removeFromPlaylist(id)}
               />
             </div>
