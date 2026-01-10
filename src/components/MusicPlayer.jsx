@@ -50,16 +50,6 @@ export default function MusicPlayer({
 
     const [isPlaying, setIsPlaying] = useState(false);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const h = howlRef.current;
-            if (h) setIsPlaying(h.playing());
-        }, 300);
-
-        return () => clearInterval(interval);
-    }, []);
-
-
     // keep modeRef updated
     useEffect(() => {
         modeRef.current = mode;
@@ -88,7 +78,7 @@ export default function MusicPlayer({
 
         howlRef.current = h;
         bindOnEnd();
-        window._howlerRef = () => h;
+        window._howlerRef = () => howlRef.current;
 
         h.once("load", () => {
             let startPos = 0;
@@ -121,11 +111,8 @@ export default function MusicPlayer({
 
         return () => {
             clearInterval(timer);
-            if (howlRef.current) {
-                howlRef.current.unload();
-                howlRef.current = null;
-            }
         };
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [track?.id]);
 

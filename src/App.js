@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -16,6 +16,9 @@ import MyPlaylist from "./pages/MyPlaylist";
 import "./App.css";
 import BottomNav from "./components/BottomNav";
 import FullPlayer from "./components/FullPlayer";
+import MyPlaylistHome from "./pages/MyPlaylistHome";
+import MyPlaylistDetail from "./pages/MyPlaylistDetail";
+import PlaylistPicker from "./components/PlaylistPicker";
 
 // auto import songs
 function importAll(r) {
@@ -38,30 +41,57 @@ console.log("process.env:", process.env);
 const BACKEND_URL = process.env.REACT_APP_API_BASE;
 
 export default function App() {
+  const [pickerTrack, setPickerTrack] = useState(null);
+  const seekRef = useRef(0);
+  const shufflePoolRef = useRef([]);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [seekPos, setSeekPos] = useState(0);
   const [activeQueue, setActiveQueue] = useState("all");
-  const [playlist, setPlaylist] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("playlist_v1") || "[]");
-    } catch {
-      return [];
-    }
-  });
+
   const [mode, setMode] = useState(() => {
     return localStorage.getItem("last_mode") || "normal";
   });
 
+  const [playlists, setPlaylists] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("playlists_v1")) || {
+        "Liked Songs": []
+      };
+    } catch {
+      return { "Liked Songs": [] };
+    }
+  });
+
+  const [activePlaylist, setActivePlaylist] = useState("Liked Songs");
+
+  const playlist = playlists[activePlaylist] || [];
+
+  const createPlaylist = (name) => {
+    if (!name || playlists[name]) return;
+
+    setPlaylists(prev => ({
+      ...prev,
+      [name]: []
+    }));
+  };
+
+
+
+
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    localStorage.setItem("playlist_v1", JSON.stringify(playlist));
-  }, [playlist]);
+    localStorage.setItem("playlists_v1", JSON.stringify(playlists));
+  }, [playlists]);
+
 
   const currentQueue = useMemo(() => {
     return activeQueue === "playlist" ? playlist : TRACKS;
   }, [activeQueue, playlist]);
+
+
+
 
 
   const currentTrack = useMemo(
@@ -78,39 +108,86 @@ export default function App() {
         setActiveQueue(queue);
         if (autoplay) window._autoplayFlag = true;
         setCurrentIndex(idx);
-        setSeekPos(resumeTime || 0);
+        seekRef.current = resumeTime || 0;
+
       }
     },
     [playlist]
   );
 
+  const buildShufflePool = (length, current) => {
+    if (length <= 1) return [];
+    return Array.from({ length }, (_, i) => i).filter(i => i !== current);
+  };
+
+  const getNextShuffleIndex = (length, current) => {
+    let pool = shufflePoolRef.current;
+
+    if (pool.length === 0) {
+      pool = Array.from({ length }, (_, i) => i).filter(i => i !== current);
+    }
+
+    const randomPos = Math.floor(Math.random() * pool.length);
+    const nextIndex = pool[randomPos];
+
+    shufflePoolRef.current = pool.filter((_, i) => i !== randomPos);
+
+    console.log("▶️ PLAY:", nextIndex, "REMAINING:", shufflePoolRef.current);
+
+    return nextIndex;
+  };
+
+
+
+
+
+
   const playNext = useCallback(() => {
     if (!currentQueue.length) return;
-
     window._autoplayFlag = true;
 
     if (mode === "shuffle") {
-      setCurrentIndex(Math.floor(Math.random() * currentQueue.length));
+      const next = getNextShuffleIndex(
+        currentQueue.length,
+        currentIndex
+      );
+      setCurrentIndex(next);
     } else {
-      setCurrentIndex((prev) => (prev + 1) % currentQueue.length);
+      setCurrentIndex(
+        (prev) => (prev + 1) % currentQueue.length
+      );
     }
-    setSeekPos(0);
-  }, [mode, currentQueue]);
+
+    seekRef.current = 0;
+
+  }, [mode, currentQueue.length, currentIndex]);
+
+
+
 
   const playPrev = useCallback(() => {
     if (!currentQueue.length) return;
-
     window._autoplayFlag = true;
 
     if (mode === "shuffle") {
-      setCurrentIndex(Math.floor(Math.random() * currentQueue.length));
+      const prev = getNextShuffleIndex(
+        currentQueue.length,
+        currentIndex
+      );
+      setCurrentIndex(prev);
     } else {
       setCurrentIndex(
-        (prev) => (prev - 1 + currentQueue.length) % currentQueue.length
+        (prev) =>
+          (prev - 1 + currentQueue.length) % currentQueue.length
       );
     }
-    setSeekPos(0);
-  }, [mode, currentQueue]);
+
+    seekRef.current = 0;
+  }, [mode, currentQueue.length, currentIndex]);
+
+
+
+
 
   const handleEnded = useCallback(() => {
     if (mode === "repeat-all" || mode === "shuffle") {
@@ -118,20 +195,40 @@ export default function App() {
     }
   }, [mode, playNext]);
 
-  const addToPlaylist = useCallback((track) => {
-    setPlaylist((prev) => {
-      if (prev.some((t) => t.id === track.id)) return prev;
-      return [...prev, track];
-    });
-  }, []);
+  const addToPlaylist = useCallback((track, playlistName = activePlaylist) => {
+    setPlaylists(prev => {
+      if (prev[playlistName]?.some(t => t.id === track.id)) return prev;
 
-  const removeFromPlaylist = useCallback((idOrIndex) => {
-    setPlaylist((prev) =>
-      typeof idOrIndex === "number"
-        ? prev.filter((_, i) => i !== idOrIndex)
-        : prev.filter((t) => t.id !== idOrIndex)
-    );
-  }, []);
+      return {
+        ...prev,
+        [playlistName]: [...(prev[playlistName] || []), track]
+      };
+    });
+  }, [activePlaylist]);
+
+
+
+  const removeFromPlaylist = useCallback((trackId, playlistName = activePlaylist) => {
+    setPlaylists(prev => ({
+      ...prev,
+      [playlistName]: prev[playlistName].filter(t => t.id !== trackId)
+    }));
+  }, [activePlaylist]);
+
+
+
+  useEffect(() => {
+    if (mode === "shuffle") {
+      shufflePoolRef.current = Array.from(
+        { length: currentQueue.length },
+        (_, i) => i
+      ).filter(i => i !== currentIndex);
+
+      console.log("🔁 SHUFFLE INIT:", shufflePoolRef.current);
+    } else {
+      shufflePoolRef.current = [];
+    }
+  }, [mode, activeQueue, currentQueue.length]);
 
   useEffect(() => {
     if (!isPlayerExpanded) return;
@@ -178,7 +275,7 @@ export default function App() {
       const audio = window._howlerRef?.();
       if (audio && typeof audio.seek === "function") {
         const pos = audio.seek() || 0;
-        setSeekPos(pos);
+        seekRef.current = pos;
 
         axios.post(`${BACKEND_URL}/api/track`, {
           id: currentTrack.id,
@@ -188,7 +285,7 @@ export default function App() {
       }
     }, 2000);
     return () => clearInterval(interval);
-  }, [currentTrack]);
+  });
 
   return (
     <div className="app">
@@ -203,7 +300,7 @@ export default function App() {
                   tracks={TRACKS}
                   currentId={currentTrack?.id}
                   onPlay={playById}
-                  onAddToPlaylist={addToPlaylist}
+                  onAddToPlaylist={(track) => setPickerTrack(track)}
                   onRemoveFromPlaylist={removeFromPlaylist}
                   playlist={playlist}
                 />
@@ -213,7 +310,7 @@ export default function App() {
                   tracks={TRACKS}
                   currentId={currentTrack?.id}
                   onPlay={playById}
-                  onAddToPlaylist={addToPlaylist}
+                  onAddToPlaylist={(track) => setPickerTrack(track)}
                   onRemoveFromPlaylist={removeFromPlaylist}
                   playlist={playlist}
                 />
@@ -233,19 +330,33 @@ export default function App() {
                   tracks={TRACKS}
                   currentId={currentTrack?.id}
                   onPlay={playById}
-                  onAddToPlaylist={addToPlaylist}
+                  onAddToPlaylist={(track) => setPickerTrack(track)}
                   onRemoveFromPlaylist={removeFromPlaylist}
                   playlist={playlist}
                 />
               } />
               <Route path="/myplaylist" element={
-                <MyPlaylist
-                  playlist={playlist}
+                <MyPlaylistHome
+                  playlists={playlists}
+                  onCreate={createPlaylist}
                   currentId={currentTrack?.id}
                   onPlay={(t) => playById(t.id, true, 0, "playlist")}
                   onRemove={(i) => removeFromPlaylist(i)}
                 />
               } />
+
+              <Route
+                path="/myplaylist/:name"
+                element={
+                  <MyPlaylistDetail
+                    playlists={playlists}
+                    currentId={currentTrack?.id}
+                    onPlay={(t) => playById(t.id, true, 0, "playlist")}
+                    onRemove={removeFromPlaylist}
+                    setActivePlaylist={setActivePlaylist}
+                  />
+                }
+              />
             </Routes>
 
           </section>
@@ -256,7 +367,7 @@ export default function App() {
               onPrev={playPrev}
               onPlay={() => playById(currentTrack.id, true)}
               playlist={playlist}
-              onAddToPlaylist={addToPlaylist}
+              onAddToPlaylist={(track) => setPickerTrack(track)}
               onRemoveFromPlaylist={removeFromPlaylist}
               mode={mode}
               setMode={setMode}
@@ -264,6 +375,18 @@ export default function App() {
               onCollapse={() => setIsPlayerExpanded(false)}
             />
           )}
+
+
+          {pickerTrack && (
+            <PlaylistPicker
+              playlists={playlists}
+              onSelect={(playlistName) =>
+                addToPlaylist(pickerTrack, playlistName)
+              }
+              onClose={() => setPickerTrack(null)}
+            />
+          )}
+
 
         </section>
 
@@ -277,10 +400,10 @@ export default function App() {
               onEnded={handleEnded}
               mode={mode}
               setMode={setMode}
-              onAddToPlaylist={addToPlaylist}
+              onAddToPlaylist={(track) => setPickerTrack(track)}
               onRemoveFromPlaylist={removeFromPlaylist}
               playlist={playlist}
-              resumeSeek={seekPos}
+              resumeSeek={seekRef.current}
               onExpand={() => setIsPlayerExpanded(true)}
             />
           </div>
@@ -288,7 +411,18 @@ export default function App() {
           <div className="card-bottem">
             <div className="row between">
               <h3>Your Playlist</h3>
-              <button className="btn ghost" onClick={() => setPlaylist([])}>Clear</button>
+              <button
+                className="btn ghost"
+                onClick={() =>
+                  setPlaylists((prev) => ({
+                    ...prev,
+                    [activePlaylist]: [],
+                  }))
+                }
+              >
+                Clear
+              </button>
+
             </div>
             <div className="playlist-scroll">
               <Playlist
