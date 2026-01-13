@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Playlist from "../components/Playlist";
 
 
@@ -8,81 +8,42 @@ export default function MyPlaylistDetail({
     currentId,
     onPlay,
     onRemove,
-    setActivePlaylist,
-    allSongs,
-    onAddToPlaylist
+    setActivePlaylist
 }) {
     const { name } = useParams();
     const playlistName = decodeURIComponent(name);
     const playlist = playlists[playlistName] || [];
-    const names = Object.keys(playlists);
     const navigate = useNavigate();
-    const [selectedIds, setSelectedIds] = useState([]);
-
-
-    const availableSongs = allSongs.filter(
-        t => !playlist.some(p => p.id === t.id)
-    );
-
-    const toggleSelect = (id) => {
-        setSelectedIds(prev =>
-            prev.includes(id)
-                ? prev.filter(x => x !== id)
-                : [...prev, id]
-        );
-    };
-
-    const addSelectedSongs = () => {
-        selectedIds.forEach(id => {
-            const song = allSongs.find(s => s.id === id);
-            if (song) {
-                onAddToPlaylist(song, playlistName);
-            }
-        });
-        setSelectedIds([]);
-    };
-
-
-
 
     useEffect(() => {
         setActivePlaylist(playlistName);
-    }, [playlistName]);
+    }, [playlistName, setActivePlaylist]);
 
     return (
         <div className="page">
             <div className="row between">
                 <button
-                    className="btn ghost"
+                    className="btn create"
                     onClick={() => navigate(-1)}
                 >
-                    ← Back
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24"><path fill="yellow" d="m7.825 13l5.6 5.6L12 20l-8-8l8-8l1.425 1.4l-5.6 5.6H20v2z" /></svg>
                 </button>
 
 
                 <h2> {playlistName} ({playlist.length})</h2>
 
                 <button
-                    className="btn primary"
-                    onClick={() => {
-                        const songNames = availableSongs
-                            .map((s, i) => `${i + 1}. ${s.title}`)
-                            .join("\n");
-
-                        const choice = prompt(
-                            "Select song number to add:\n\n" + songNames
-                        );
-
-                        const index = Number(choice) - 1;
-                        const song = availableSongs[index];
-
-                        if (song) {
-                            onAddToPlaylist(song);
-                            alert(`Added "${song.title}"`);
-                        }
-                    }}
+                    className="btn create"
+                    onClick={() =>
+                        navigate("/all-songs", {
+                            state: {
+                                excludeIds: playlist.map(s => s.id),
+                                playlistName
+                            }
+                        })
+                    }
                 >
-                    +
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24"><path fill="yellow" d="M19 12.998h-6v6h-2v-6H5v-2h6v-6h2v6h6z" /></svg>
                 </button>
 
             </div>

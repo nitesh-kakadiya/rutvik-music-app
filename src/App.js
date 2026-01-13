@@ -307,6 +307,17 @@ export default function App() {
     return () => clearInterval(interval);
   });
 
+  const handleAddToPlaylist = (track, playlistName) => {
+    if (playlistName) {
+      // ✅ Direct add (no picker)
+      addToPlaylist(track, playlistName);
+    } else {
+      // ❓ Ask user
+      setPickerTrack(track);
+    }
+  };
+
+
   return (
     <div className="app">
       <Navbar onSearch={(q) => navigate(`/search?q=${encodeURIComponent(q)}`)} />
@@ -350,9 +361,10 @@ export default function App() {
                   tracks={TRACKS}
                   currentId={currentTrack?.id}
                   onPlay={playById}
-                  onAddToPlaylist={(track) => setPickerTrack(track)}
+                  onAddToPlaylist={handleAddToPlaylist}
                   onRemoveFromPlaylist={removeFromPlaylist}
                   playlist={playlist}
+                  setActivePlaylist={setActivePlaylist}
                 />
               } />
               <Route path="/myplaylist" element={

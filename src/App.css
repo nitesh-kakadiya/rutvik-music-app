@@ -217,9 +217,9 @@
     height: calc(100vh - var(--nav-height) - var(--mini-height));
     margin-top: var(--nav-height);
     margin-bottom: var(--mini-height);
-    color: #d2e031;
-    border: 2px solid #d2e031;
-    background: rgb(210, 224, 49, 0.15);
+    color: #b2b874;
+    border: 2px solid #b2b874;
+    background: rgb(178, 184, 116, 0.15);
     border-radius: 12px;
     overflow: hidden;
   }
@@ -817,6 +817,20 @@
   .playlist-actions .btn {
     padding: 0;
     border: none;
+  }
+
+  .create {
+    color: #d2e031;
+    border: 2px solid #d2e031;
+    background: rgb(210, 224, 49, 0.10);
+    margin-bottom: 10px;
+    padding: 7px 9px;
+  }
+
+  .create:hover {
+    color: blue;
+    border: 2px solid blue;
+    background: rgb(66, 135, 245, 0.10);
   }
 
 
