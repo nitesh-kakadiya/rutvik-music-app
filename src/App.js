@@ -19,6 +19,7 @@ import FullPlayer from "./components/FullPlayer";
 import MyPlaylistHome from "./pages/MyPlaylistHome";
 import MyPlaylistDetail from "./pages/MyPlaylistDetail";
 import PlaylistPicker from "./components/PlaylistPicker";
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 // auto import songs
 function importAll(r) {
@@ -74,6 +75,25 @@ export default function App() {
       [name]: []
     }));
   };
+
+
+  const deletePlaylist = (name) => {
+    if (name === "Liked Songs") return; // ❌ protect default playlist
+
+    setPlaylists(prev => {
+      const copy = { ...prev };
+      delete copy[name];
+
+      return copy;
+    });
+
+    // agar wahi playlist active thi to reset
+    if (activePlaylist === name) {
+      setActivePlaylist("Liked Songs");
+      setActiveQueue("all");
+    }
+  };
+
 
 
 
@@ -339,6 +359,7 @@ export default function App() {
                 <MyPlaylistHome
                   playlists={playlists}
                   onCreate={createPlaylist}
+                  onDelete={deletePlaylist}
                   currentId={currentTrack?.id}
                   onPlay={(t) => playById(t.id, true, 0, "playlist")}
                   onRemove={(i) => removeFromPlaylist(i)}
@@ -354,6 +375,8 @@ export default function App() {
                     onPlay={(t) => playById(t.id, true, 0, "playlist")}
                     onRemove={removeFromPlaylist}
                     setActivePlaylist={setActivePlaylist}
+                    allSongs={TRACKS}
+                    onAddToPlaylist={addToPlaylist}
                   />
                 }
               />

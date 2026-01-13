@@ -1,6 +1,14 @@
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
-export default function MyPlaylistHome({ playlists, onCreate }) {
+
+export default function MyPlaylistHome({
+    playlists,
+    onCreate,
+    onDelete
+}) {
+
     const navigate = useNavigate();
     const names = Object.keys(playlists);
 
@@ -29,16 +37,34 @@ export default function MyPlaylistHome({ playlists, onCreate }) {
                             navigate(`/myplaylist/${encodeURIComponent(name)}`)
                         }
                     >
-                        <div>
+                        <div className="playlist-info">
                             <div className="title">{name}</div>
                             <div className="artist">
                                 {playlists[name].length} songs
                             </div>
                         </div>
-                        <span>›</span>
+
+                        <div className="playlist-actions">
+                            {name !== "Liked Songs" && (
+                                <button
+                                    type="button"
+                                    className="btn ghost playlist-delete"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm(`Delete "${name}" playlist?`)) {
+                                            onDelete(name);
+                                        }
+                                    }}
+                                >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                </button>
+                            )}
+                            <span className="arrow">›</span>
+                        </div>
                     </div>
                 ))}
             </div>
+
         </div>
     );
 }

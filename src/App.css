@@ -793,6 +793,33 @@
     font-size: 13px;
   }
 
+
+  .playlist-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .playlist-actions .arrow {
+    font-size: 20px;
+    opacity: 0.6;
+  }
+
+  .playlist-delete {
+    color: white;
+    font-size: 15px;
+  }
+
+  .playlist-delete:hover {
+    color: #e74c3c !important;
+  }
+
+  .playlist-actions .btn {
+    padding: 0;
+    border: none;
+  }
+
+
   /* ===== Links ===== */
   a {
     color: var(--brand);
