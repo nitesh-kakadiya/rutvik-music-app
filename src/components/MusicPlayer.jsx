@@ -3,9 +3,7 @@ import React, {
     useEffect,
     useRef,
     useState,
-    useCallback,
 } from "react";
-import { Howl } from "howler";
 import {
     FaStepBackward,
     FaStepForward,
@@ -31,6 +29,9 @@ function fmt(sec) {
 /* ============ MusicPlayer ============ */
 export default function MusicPlayer({
     track,
+    isPlaying,
+    onPlay,
+    onPause,
     onExpand,
     onNext,
     onPrev,
@@ -42,13 +43,10 @@ export default function MusicPlayer({
     playlist,
     resumeSeek = 0,
 }) {
-    const howlRef = useRef(null);
     const modeRef = useRef(mode);
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
     const [volume, setVolume] = useState(0.9);
-
-    const [isPlaying, setIsPlaying] = useState(false);
 
     // keep modeRef updated
     useEffect(() => {
@@ -57,113 +55,82 @@ export default function MusicPlayer({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mode]);
 
-    // Load new track
-    useEffect(() => {
-        if (howlRef.current) {
-            howlRef.current.unload();
-            howlRef.current = null;
-        }
-        setIsPlaying(false);
-        setPos(0);
-        setDur(0);
-
-        if (!track) return;
-
-        const h = new Howl({
-            src: [track.url],
-            html5: true,
-            volume,
-            onload: () => setDur(h.duration() || 0),
-        });
-
-        howlRef.current = h;
-        bindOnEnd();
-        window._howlerRef = () => howlRef.current;
-
-        h.once("load", () => {
-            let startPos = 0;
-            let shouldPlay = false;
-
-            if (resumeSeek > 0 && resumeSeek < h.duration()) {
-                startPos = resumeSeek;
-                shouldPlay = true;
-            }
-
-            if (startPos > 0) {
-                h.seek(startPos);
-                setPos(startPos);
-            }
-            if (shouldPlay || window._autoplayFlag) {
-                h.play();
-                setIsPlaying(true);
-                window._autoplayFlag = false;
-            } else {
-                setIsPlaying(false);
-            }
-        });
-
-        const timer = setInterval(() => {
-            if (!h) return;
-            const p = h.seek() || 0;
-            setPos(typeof p === "number" ? p : 0);
-            if (!dur) setDur(h.duration() || 0);
-        }, 1000);
-
-        return () => {
-            clearInterval(timer);
-        };
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [track?.id]);
-
     const bindOnEnd = () => {
-        const h = howlRef.current;
+        const h = window._howlerRef?.();
         if (!h) return;
+
         h.off("end");
         h.on("end", () => {
             const currentMode = modeRef.current;
+
             if (currentMode === "repeat-one") {
                 h.seek(0);
                 h.play();
-                setIsPlaying(true);
                 return;
             }
-            setIsPlaying(false);
+
             if (currentMode === "repeat-all" || currentMode === "shuffle") {
                 window._autoplayFlag = true;
             }
+
             onEnded?.();
         });
     };
 
+
     useEffect(() => {
-        if (howlRef.current) howlRef.current.volume(volume);
+        const h = window._howlerRef?.();
+        if (h) h.volume(volume);
+
     }, [volume]);
 
-    const toggle = useCallback(() => {
-        const h = howlRef.current;
+    useEffect(() => {
+        const h = window._howlerRef?.();
         if (!h) return;
-        if (h.playing()) {
+
+
+        if (!isPlaying && h.playing()) {
             h.pause();
-            setIsPlaying(false);
-        } else {
-            h.play();
-            setIsPlaying(true);
         }
+
+
+    }, [isPlaying]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const h = window._howlerRef?.();
+            if (!h || !h.playing()) return;
+
+            const p = h.seek();
+            if (typeof p === "number") {
+                setPos(p);
+                setDur(h.duration() || 0);
+            }
+        }, 300);
+
+        return () => clearInterval(interval);
     }, []);
+
+
+
+
 
     /* ============ Seek Handling ============ */
     const onSeek = (e) => {
-        const h = howlRef.current;
+        const h = window._howlerRef?.();
         if (!h || !dur) return;
 
-        const rect = e.target.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percent = clickX / rect.width;
+
         const newTime = Math.max(0, Math.min(1, percent)) * dur;
 
         h.seek(newTime);
         setPos(newTime);
     };
+
+
 
     // 🎧 Media Session API
     useEffect(() => {
@@ -178,12 +145,12 @@ export default function MusicPlayer({
                 ],
             });
 
-            navigator.mediaSession.setActionHandler("play", () => toggle());
-            navigator.mediaSession.setActionHandler("pause", () => toggle());
+            navigator.mediaSession.setActionHandler("play", () => onPlay?.());
+            navigator.mediaSession.setActionHandler("pause", () => onPause?.());
             navigator.mediaSession.setActionHandler("nexttrack", () => onNext?.());
             navigator.mediaSession.setActionHandler("previoustrack", () => onPrev?.());
         }
-    }, [track, toggle, onNext, onPrev]);
+    }, [track, onNext, onPrev]);
 
     if (!track) return <div className="muted">No track selected.</div>;
     const progress = dur ? pos / dur : 0;
@@ -252,16 +219,9 @@ export default function MusicPlayer({
                         <FaHeart color={isFavorite ? "red" : "white"} />
                     </button>
 
-                    <button
-                        className="btn"
-                        onClick={(e) => {
-                            e.stopPropagation(); // 🔹 prevent parent click
-                            toggle();
-                        }}
-                    >
+                    <button className="btn" onClick={isPlaying ? onPause : onPlay}>
                         {isPlaying ? <FaPause /> : <FaPlay />}
                     </button>
-
                 </div>
             </div>
 
@@ -297,7 +257,7 @@ export default function MusicPlayer({
                 <button className="mp-next" onClick={onPrev}>
                     <FaStepBackward size={25} />
                 </button>
-                <button className="mp-play" onClick={toggle}>
+                <button className="mp-play" onClick={isPlaying ? onPause : onPlay}>
                     {isPlaying ? <FaPause size={18} /> : <FaPlay size={18} />}
                 </button>
                 <button className="mp-next" onClick={onNext}>

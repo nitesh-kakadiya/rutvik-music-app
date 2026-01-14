@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Howl } from "howler";
 
 import Navbar from "./components/Navbar";
 import MusicPlayer from "./components/MusicPlayer";
@@ -43,8 +44,10 @@ const BACKEND_URL = process.env.REACT_APP_API_BASE;
 
 export default function App() {
   const [pickerTrack, setPickerTrack] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const seekRef = useRef(0);
   const shufflePoolRef = useRef([]);
+  const howlerRef = useRef(null);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeQueue, setActiveQueue] = useState("all");
@@ -96,9 +99,6 @@ export default function App() {
 
 
 
-
-
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -110,6 +110,25 @@ export default function App() {
     return activeQueue === "playlist" ? playlist : TRACKS;
   }, [activeQueue, playlist]);
 
+
+  const play = useCallback(() => {
+    const audio = window._howlerRef?.();
+    if (!audio) return;
+
+    if (!audio.playing()) {
+      audio.play();
+    }
+    setIsPlaying(true);
+  }, []);
+
+
+  const pause = useCallback(() => {
+    const audio = window._howlerRef?.();
+    if (!audio) return;
+
+    audio.pause();
+    setIsPlaying(false);
+  }, []);
 
 
 
@@ -234,6 +253,37 @@ export default function App() {
       [playlistName]: prev[playlistName].filter(t => t.id !== trackId)
     }));
   }, [activePlaylist]);
+
+
+
+  useEffect(() => {
+    if (!currentTrack) return;
+
+    // destroy old
+    if (howlerRef.current) {
+      howlerRef.current.unload();
+    }
+
+    const h = new Howl({
+      src: [currentTrack.url],
+      html5: true,
+      volume: 0.9,
+      onend: () => handleEnded(),
+    });
+
+    howlerRef.current = h;
+    window._howlerRef = () => h;
+
+    if (seekRef.current > 0) {
+      h.seek(seekRef.current);
+    }
+
+    if (isPlaying || window._autoplayFlag) {
+      h.play();
+      window._autoplayFlag = false;
+    }
+
+  }, [currentTrack?.id, isPlaying]);
 
 
 
@@ -398,9 +448,11 @@ export default function App() {
           {currentTrack && (
             <FullPlayer
               track={currentTrack}
+              isPlaying={isPlaying}
+              onPlay={play}
+              onPause={pause}
               onNext={playNext}
               onPrev={playPrev}
-              onPlay={() => playById(currentTrack.id, true)}
               playlist={playlist}
               onAddToPlaylist={(track) => setPickerTrack(track)}
               onRemoveFromPlaylist={removeFromPlaylist}
@@ -425,50 +477,55 @@ export default function App() {
 
         </section>
 
-        <aside className="sidebar">
-          <div className="card-top">
-            <h3>Now Playing</h3>
-            <MusicPlayer
-              track={currentTrack}
-              onNext={playNext}
-              onPrev={playPrev}
-              onEnded={handleEnded}
-              mode={mode}
-              setMode={setMode}
-              onAddToPlaylist={(track) => setPickerTrack(track)}
-              onRemoveFromPlaylist={removeFromPlaylist}
-              playlist={playlist}
-              resumeSeek={seekRef.current}
-              onExpand={() => setIsPlayerExpanded(true)}
-            />
-          </div>
-
-          <div className="card-bottem">
-            <div className="row between">
-              <h3>Your Playlist</h3>
-              <button
-                className="btn ghost"
-                onClick={() =>
-                  setPlaylists((prev) => ({
-                    ...prev,
-                    [activePlaylist]: [],
-                  }))
-                }
-              >
-                Clear
-              </button>
-
-            </div>
-            <div className="playlist-scroll">
-              <Playlist
+        {!isPlayerExpanded && (
+          <aside className="sidebar">
+            <div className="card-top">
+              <h3>Now Playing</h3>
+              <MusicPlayer
+                track={currentTrack}
+                isPlaying={isPlaying}
+                onPlay={play}
+                onPause={pause}
+                onNext={playNext}
+                onPrev={playPrev}
+                onEnded={handleEnded}
+                mode={mode}
+                setMode={setMode}
+                onAddToPlaylist={(track) => setPickerTrack(track)}
+                onRemoveFromPlaylist={removeFromPlaylist}
                 playlist={playlist}
-                currentId={currentTrack?.id}
-                onPlay={(t) => playById(t.id, true, 0, "playlist")}
-                onRemove={(id) => removeFromPlaylist(id)}
+                resumeSeek={seekRef.current}
+                onExpand={() => setIsPlayerExpanded(true)}
               />
             </div>
-          </div>
-        </aside>
+
+            <div className="card-bottem">
+              <div className="row between">
+                <h3>Your Playlist</h3>
+                <button
+                  className="btn ghost"
+                  onClick={() =>
+                    setPlaylists((prev) => ({
+                      ...prev,
+                      [activePlaylist]: [],
+                    }))
+                  }
+                >
+                  Clear
+                </button>
+
+              </div>
+              <div className="playlist-scroll">
+                <Playlist
+                  playlist={playlist}
+                  currentId={currentTrack?.id}
+                  onPlay={(t) => playById(t.id, true, 0, "playlist")}
+                  onRemove={(id) => removeFromPlaylist(id)}
+                />
+              </div>
+            </div>
+          </aside>
+        )}
       </main>
     </div>
   );

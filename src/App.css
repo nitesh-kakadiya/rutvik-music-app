@@ -700,13 +700,6 @@
     }
   }
 
-  /* Respect reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    .marquee-track.is-animating {
-      animation: none !important;
-      transform: translateX(0) !important;
-    }
-  }
 
   .mp-controls {
     width: 100%;
@@ -1139,6 +1132,11 @@
     .fp-time-bar-mini {
       display: block;
       height: 2px;
+    }
+
+    .fp-time-bar,
+    .fp-time-bar-mini {
+      cursor: pointer;
     }
 
 

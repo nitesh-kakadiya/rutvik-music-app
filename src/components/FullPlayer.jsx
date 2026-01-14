@@ -25,30 +25,30 @@ export default function FullPlayer({
     isOpen,
     onCollapse,
     track,
+    isPlaying,
+    onPlay,
+    onPause,
     onNext,
     onPrev,
-    onPlay,
     playlist = [],
     onAddToPlaylist,
     onRemoveFromPlaylist,
     mode,
     setMode,
 }) {
-    const howlRef = useRef(null);
 
-    const [isPlaying, setIsPlaying] = useState(false);
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
+
 
     /* ============ Sync Howler Instance ============ */
     useEffect(() => {
         const interval = setInterval(() => {
             if (window._howlerRef && typeof window._howlerRef === "function") {
                 const h = window._howlerRef();
-                howlRef.current = h;
+                window._howlerRef?.()
 
                 if (h) {
-                    setIsPlaying(h.playing());
                     setDur(h.duration() || 0);
                     const p = h.seek() || 0;
                     setPos(typeof p === "number" ? p : 0);
@@ -61,34 +61,19 @@ export default function FullPlayer({
 
     /* ============ Seek Handling ============ */
     const onSeek = (e) => {
-        const h = howlRef.current;
+        const h = window._howlerRef?.();
         if (!h || !dur) return;
 
-        const rect = e.target.getBoundingClientRect();
-        const percent = (e.clientX - rect.left) / rect.width;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percent = clickX / rect.width;
+
         const newTime = Math.max(0, Math.min(1, percent)) * dur;
 
         h.seek(newTime);
         setPos(newTime);
     };
 
-    /* ============ Play / Pause ============ */
-    const handlePlayClick = () => {
-        const h = howlRef.current;
-
-        if (!h) {
-            onPlay(track.id, true);
-            return;
-        }
-
-        if (h.playing()) {
-            h.pause();
-            setIsPlaying(false);
-        } else {
-            h.play();
-            setIsPlaying(true);
-        }
-    };
 
     /* ============ Loop / Shuffle Cycle ============ */
     const cycleTo = () => {
@@ -177,9 +162,10 @@ export default function FullPlayer({
                     <FaStepBackward size={35} />
                 </button>
 
-                <button className="fp-play" onClick={handlePlayClick}>
+                <button className="fp-play" onClick={isPlaying ? onPause : onPlay}>
                     {isPlaying ? <FaPause size={22} /> : <FaPlay size={22} />}
                 </button>
+
 
                 <button className="fp-next" onClick={onNext}>
                     <FaStepForward size={35} />
