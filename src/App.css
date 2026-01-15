@@ -562,8 +562,8 @@
   }
 
   .songcard.active {
-    border-color: var(--brand);
     box-shadow: 0 0 0 3px var(--brand-soft);
+    border: 3px solid yellow;
   }
 
 
