@@ -39,23 +39,22 @@ function importAll(r) {
 const TRACKS = importAll(require.context("./Nitesh", false, /\.mp3$/));
 console.log("process.env:", process.env);
 
-// ✅ Use Render backend URL from .env
-const BACKEND_URL = process.env.REACT_APP_API_BASE;
 
 export default function App() {
   const [pickerTrack, setPickerTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const seekRef = useRef(0);
-  const shufflePoolRef = useRef([]);
+  const playQueueRef = useRef([]);
+  const [upcomingQueue, setUpcomingQueue] = useState([]);
   const howlerRef = useRef(null);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeQueue, setActiveQueue] = useState("all");
+  const [volume, setVolume] = useState(0.9);
 
   const [mode, setMode] = useState(() => {
     return localStorage.getItem("last_mode") || "normal";
   });
-
   const [playlists, setPlaylists] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("playlists_v1")) || {
@@ -65,10 +64,9 @@ export default function App() {
       return { "Liked Songs": [] };
     }
   });
-
   const [activePlaylist, setActivePlaylist] = useState("Liked Songs");
-
   const playlist = playlists[activePlaylist] || [];
+
 
   const createPlaylist = (name) => {
     if (!name || playlists[name]) return;
@@ -98,8 +96,8 @@ export default function App() {
   };
 
 
-
   const navigate = useNavigate();
+
 
   useEffect(() => {
     localStorage.setItem("playlists_v1", JSON.stringify(playlists));
@@ -115,10 +113,11 @@ export default function App() {
     const audio = window._howlerRef?.();
     if (!audio) return;
 
+    window._autoplayFlag = true;
+
     if (!audio.playing()) {
       audio.play();
     }
-    setIsPlaying(true);
   }, []);
 
 
@@ -127,16 +126,14 @@ export default function App() {
     if (!audio) return;
 
     audio.pause();
-    setIsPlaying(false);
   }, []);
-
-
 
 
   const currentTrack = useMemo(
     () => (currentIndex != null ? currentQueue[currentIndex] : null),
     [currentIndex, currentQueue]
   );
+
 
   const playById = useCallback(
     (id, autoplay = false, resumeTime = 0, queue = "all") => {
@@ -145,40 +142,17 @@ export default function App() {
 
       if (idx !== -1) {
         setActiveQueue(queue);
-        if (autoplay) window._autoplayFlag = true;
+
+        if (autoplay) {
+          window._autoplayFlag = true;
+        }
+
         setCurrentIndex(idx);
         seekRef.current = resumeTime || 0;
-
       }
     },
     [playlist]
   );
-
-  const buildShufflePool = (length, current) => {
-    if (length <= 1) return [];
-    return Array.from({ length }, (_, i) => i).filter(i => i !== current);
-  };
-
-  const getNextShuffleIndex = (length, current) => {
-    let pool = shufflePoolRef.current;
-
-    if (pool.length === 0) {
-      pool = Array.from({ length }, (_, i) => i).filter(i => i !== current);
-    }
-
-    const randomPos = Math.floor(Math.random() * pool.length);
-    const nextIndex = pool[randomPos];
-
-    shufflePoolRef.current = pool.filter((_, i) => i !== randomPos);
-
-    console.log("▶️ PLAY:", nextIndex, "REMAINING:", shufflePoolRef.current);
-
-    return nextIndex;
-  };
-
-
-
-
 
 
   const playNext = useCallback(() => {
@@ -186,46 +160,74 @@ export default function App() {
     window._autoplayFlag = true;
 
     if (mode === "shuffle") {
-      const next = getNextShuffleIndex(
-        currentQueue.length,
-        currentIndex
-      );
-      setCurrentIndex(next);
+      // 🟡 1. agar queue empty ho gayi → rebuild
+      if (playQueueRef.current.length === 0) {
+        const rebuilt = Array.from(
+          { length: currentQueue.length },
+          (_, i) => i
+        )
+
+        // shuffle
+        for (let i = rebuilt.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [rebuilt[i], rebuilt[j]] = [rebuilt[j], rebuilt[i]];
+        }
+
+        playQueueRef.current = rebuilt;
+        setUpcomingQueue(rebuilt.map(i => currentQueue[i]));
+      }
+
+      const nextIndex = playQueueRef.current.shift();
+      if (nextIndex !== undefined) {
+        setCurrentIndex(nextIndex);
+
+        // update UI queue
+        setUpcomingQueue(
+          playQueueRef.current.map(i => currentQueue[i])
+        );
+      }
     } else {
-      setCurrentIndex(
-        (prev) => (prev + 1) % currentQueue.length
-      );
+      setCurrentIndex(prev => (prev + 1) % currentQueue.length);
     }
 
     seekRef.current = 0;
+  }, [mode, currentQueue]);
 
-  }, [mode, currentQueue.length, currentIndex]);
 
+  const playFromUpcomingQueue = useCallback((clickedIndex) => {
+    if (!upcomingQueue.length) return;
 
+    window._autoplayFlag = true;
+
+    const nextGlobalIndex = playQueueRef.current[clickedIndex];
+    if (nextGlobalIndex == null) return;
+
+    // 🔹 play clicked song
+    setCurrentIndex(nextGlobalIndex);
+    seekRef.current = 0;
+
+    // 🔹 ONLY remove clicked song from queue
+    playQueueRef.current = playQueueRef.current.filter(
+      (_, i) => i !== clickedIndex
+    );
+
+    // 🔹 update UI queue
+    setUpcomingQueue(
+      playQueueRef.current.map(i => currentQueue[i])
+    );
+  }, [upcomingQueue, currentQueue]);
 
 
   const playPrev = useCallback(() => {
     if (!currentQueue.length) return;
     window._autoplayFlag = true;
 
-    if (mode === "shuffle") {
-      const prev = getNextShuffleIndex(
-        currentQueue.length,
-        currentIndex
-      );
-      setCurrentIndex(prev);
-    } else {
-      setCurrentIndex(
-        (prev) =>
-          (prev - 1 + currentQueue.length) % currentQueue.length
-      );
-    }
+    setCurrentIndex(prev =>
+      (prev - 1 + currentQueue.length) % currentQueue.length
+    );
 
     seekRef.current = 0;
-  }, [mode, currentQueue.length, currentIndex]);
-
-
-
+  }, [currentQueue.length]);
 
 
   const handleEnded = useCallback(() => {
@@ -233,6 +235,7 @@ export default function App() {
       playNext();
     }
   }, [mode, playNext]);
+
 
   const addToPlaylist = useCallback((track, playlistName = activePlaylist) => {
     setPlaylists(prev => {
@@ -246,6 +249,16 @@ export default function App() {
   }, [activePlaylist]);
 
 
+  const handleAddToPlaylist = (track, playlistName) => {
+    if (playlistName) {
+      // ✅ Direct add (no picker)
+      addToPlaylist(track, playlistName);
+    } else {
+      // ❓ Ask user
+      setPickerTrack(track);
+    }
+  };
+
 
   const removeFromPlaylist = useCallback((trackId, playlistName = activePlaylist) => {
     setPlaylists(prev => ({
@@ -253,6 +266,7 @@ export default function App() {
       [playlistName]: prev[playlistName].filter(t => t.id !== trackId)
     }));
   }, [activePlaylist]);
+
 
 
 
@@ -267,9 +281,23 @@ export default function App() {
     const h = new Howl({
       src: [currentTrack.url],
       html5: true,
-      volume: 0.9,
+      volume: volume,
+
+      onplay: () => {
+        setIsPlaying(true);
+      },
+
+      onpause: () => {
+        setIsPlaying(false);
+      },
+
+      onstop: () => {
+        setIsPlaying(false);
+      },
+
       onend: () => handleEnded(),
     });
+
 
     howlerRef.current = h;
     window._howlerRef = () => h;
@@ -278,27 +306,43 @@ export default function App() {
       h.seek(seekRef.current);
     }
 
-    if (isPlaying || window._autoplayFlag) {
+    if (window._autoplayFlag) {
       h.play();
       window._autoplayFlag = false;
     }
 
-  }, [currentTrack?.id, isPlaying]);
-
+  }, [currentTrack?.id]);
 
 
   useEffect(() => {
-    if (mode === "shuffle") {
-      shufflePoolRef.current = Array.from(
-        { length: currentQueue.length },
-        (_, i) => i
-      ).filter(i => i !== currentIndex);
+    if (mode !== "shuffle") return;
+    if (!currentQueue.length) return;
 
-      console.log("🔁 SHUFFLE INIT:", shufflePoolRef.current);
-    } else {
-      shufflePoolRef.current = [];
+    // 🔹 rebuild shuffle queue ONLY from currentQueue
+    const rebuilt = Array.from(
+      { length: currentQueue.length },
+      (_, i) => i
+    );
+
+    for (let i = rebuilt.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [rebuilt[i], rebuilt[j]] = [rebuilt[j], rebuilt[i]];
     }
-  }, [mode, activeQueue, currentQueue.length]);
+
+    playQueueRef.current = rebuilt;
+    setUpcomingQueue(rebuilt.map(i => currentQueue[i]));
+
+  }, [currentQueue, mode]);
+
+
+  useEffect(() => {
+    if (isPlayerExpanded) {
+      document.body.classList.add("fp-open");
+    } else {
+      document.body.classList.remove("fp-open");
+    }
+  }, [isPlayerExpanded]);
+
 
   useEffect(() => {
     if (!isPlayerExpanded) return;
@@ -321,51 +365,11 @@ export default function App() {
   }, [isPlayerExpanded]);
 
 
-  // 🔹 load last track from Render backend
   useEffect(() => {
-    // console.log("BACKEND_URL:", BACKEND_URL);
+    console.log("👀 UPCOMING UI QUEUE:", upcomingQueue.map(s => s.title));
+  }, [upcomingQueue]);
 
-    if (!BACKEND_URL) return;
-    axios.get(`${BACKEND_URL}/api/track`)
-      .then(res => {
-        console.log("Loaded from backend:", res.data);
-        const saved = res.data;
-        if (saved?.id) {
-          playById(saved.id, saved.isPlaying, saved.seek || 0);
-        }
-      })
-      .catch(err => console.log("Failed to load last track:", err));
-  }, [playById]);
 
-  // 🔹 save last track to backend every 2s
-  useEffect(() => {
-    if (!BACKEND_URL) return;
-    const interval = setInterval(() => {
-      if (!currentTrack) return;
-      const audio = window._howlerRef?.();
-      if (audio && typeof audio.seek === "function") {
-        const pos = audio.seek() || 0;
-        seekRef.current = pos;
-
-        axios.post(`${BACKEND_URL}/api/track`, {
-          id: currentTrack.id,
-          seek: pos,
-          isPlaying: audio.playing(),
-        }).catch(err => console.log("Failed to save last track:", err));
-      }
-    }, 2000);
-    return () => clearInterval(interval);
-  });
-
-  const handleAddToPlaylist = (track, playlistName) => {
-    if (playlistName) {
-      // ✅ Direct add (no picker)
-      addToPlaylist(track, playlistName);
-    } else {
-      // ❓ Ask user
-      setPickerTrack(track);
-    }
-  };
 
 
   return (
@@ -448,6 +452,10 @@ export default function App() {
           {currentTrack && (
             <FullPlayer
               track={currentTrack}
+              nextTrack={upcomingQueue[0]}
+              queue={currentQueue}
+              upcomingQueue={upcomingQueue}
+              onPlayFromQueue={playFromUpcomingQueue}
               isPlaying={isPlaying}
               onPlay={play}
               onPause={pause}
@@ -484,6 +492,8 @@ export default function App() {
               <MusicPlayer
                 track={currentTrack}
                 isPlaying={isPlaying}
+                volume={volume}
+                setVolume={setVolume}
                 onPlay={play}
                 onPause={pause}
                 onNext={playNext}
@@ -501,7 +511,12 @@ export default function App() {
 
             <div className="card-bottem">
               <div className="row between">
-                <h3>Your Playlist</h3>
+                <h3>
+                  {activeQueue === "playlist"
+                    ? `Playing: ${activePlaylist}`
+                    : "Your Playlist"}
+                </h3>
+
                 <button
                   className="btn ghost"
                   onClick={() =>

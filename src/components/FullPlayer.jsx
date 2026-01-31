@@ -9,10 +9,13 @@ import {
     FaRedo,
     FaRandom,
     FaStop,
-    FaSync
+    FaSync,
+    FaList
 } from "react-icons/fa";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import MarqueeText from "../components/MarqueeText";
+import { FaTimes } from "react-icons/fa";
+
 
 function fmt(sec) {
     if (!sec && sec !== 0) return "0:00";
@@ -23,8 +26,11 @@ function fmt(sec) {
 
 export default function FullPlayer({
     isOpen,
+    nextTrack,
     onCollapse,
     track,
+    onPlayFromQueue,
+    upcomingQueue = [],
     isPlaying,
     onPlay,
     onPause,
@@ -39,6 +45,8 @@ export default function FullPlayer({
 
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
+    const [showQueue, setShowQueue] = useState(false);
+
 
 
     /* ============ Sync Howler Instance ============ */
@@ -97,6 +105,8 @@ export default function FullPlayer({
 
     if (!track) return <div className="fullplayer">No track playing</div>;
 
+
+
     return (
         <motion.div
             className="fullplayer"
@@ -118,11 +128,24 @@ export default function FullPlayer({
                     <div className="fp-fallback">{track.title[0]}</div>
                 )}
             </div>
-
-            {/* Title & Artist */}
-            <div className="fp-info">
-                <MarqueeText text={track.title} speed={20} gap={48} />
-                <MarqueeText text={track.artist} speed={20} gap={48} />
+            <div className="fp-title-row">
+                {/* Title & Artist */}
+                <div className="fp-info">
+                    <MarqueeText text={track.title} speed={20} gap={48} />
+                    <MarqueeText text={track.artist} speed={20} gap={48} />
+                </div>
+                <div>
+                    <button
+                        className="fp-fav"
+                        onClick={() =>
+                            isFavorite
+                                ? onRemoveFromPlaylist(track.id)
+                                : onAddToPlaylist(track)
+                        }
+                    >
+                        <FaHeart size={25} color={isFavorite ? "red" : "white"} />
+                    </button>
+                </div>
             </div>
 
             {/* ========= Spotify-Style Time Slider ========= */}
@@ -141,7 +164,6 @@ export default function FullPlayer({
 
             {/* Controls */}
             <div className="fp-controls">
-
                 {/* mode toggle */}
                 <button
                     className={`btn ghost mode-${mode}`}
@@ -166,23 +188,80 @@ export default function FullPlayer({
                     {isPlaying ? <FaPause size={22} /> : <FaPlay size={22} />}
                 </button>
 
-
                 <button className="fp-next" onClick={onNext}>
                     <FaStepForward size={35} />
                 </button>
 
-                {/* Favorite */}
                 <button
-                    className="fp-fav"
-                    onClick={() =>
-                        isFavorite
-                            ? onRemoveFromPlaylist(track.id)
-                            : onAddToPlaylist(track)
-                    }
+                    className="fp-queue-btn"
+                    onClick={() => setShowQueue(v => !v)}
                 >
-                    <FaHeart size={25} color={isFavorite ? "red" : "white"} />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24"><path fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75" /></svg>
                 </button>
             </div>
+
+            <div>
+                {/* 🎶 NEXT IN QUEUE (Display only) */}
+                {nextTrack && (
+                    <div className="fp-next-preview">
+                        <div className="next-label">Next</div>
+                        <div className="next-title">{nextTrack.title}</div>
+                        <div className="next-artist">{nextTrack.artist}</div>
+                    </div>
+                )}
+            </div>
+
+            <AnimatePresence>
+                {showQueue && (
+                    <>
+                        {/* overlay */}
+                        <motion.div
+                            className="fp-queue-overlay"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowQueue(false)}
+                        />
+
+                        {/* queue panel */}
+                        <motion.div
+                            className="fp-queue-panel"
+                            initial={{ y: 60, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 60, opacity: 0 }}
+                            transition={{ duration: 0.25 }}
+                        >
+                            <div className="fp-queue-header">
+                                <div className="fp-queue-title">Next in Queue</div>
+
+                                <button
+                                    className="fp-queue-close"
+                                    onClick={() => setShowQueue(false)}
+                                >
+                                    <FaTimes size={18} />
+                                </button>
+                            </div>
+
+
+                            {upcomingQueue.length === 0 && (
+                                <div className="fp-queue-empty">No upcoming songs</div>
+                            )}
+
+                            {upcomingQueue.map((song, i) => (
+                                <div key={song.id} className="fp-queue-item" onClick={() => onPlayFromQueue(i)} >
+                                    <div className="fp-queue-index">{i + 1}</div>
+                                    <div className="fp-queue-info">
+                                        <div className="fp-queue-name">{song.title}</div>
+                                        <div className="fp-queue-artist">{song.artist}</div>
+                                    </div>
+                                </div>
+                            ))}
+
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+
         </motion.div>
     );
 }

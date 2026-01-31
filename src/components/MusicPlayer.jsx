@@ -30,6 +30,8 @@ function fmt(sec) {
 export default function MusicPlayer({
     track,
     isPlaying,
+    volume,
+    setVolume,
     onPlay,
     onPause,
     onExpand,
@@ -46,7 +48,7 @@ export default function MusicPlayer({
     const modeRef = useRef(mode);
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
-    const [volume, setVolume] = useState(0.9);
+
 
     // keep modeRef updated
     useEffect(() => {
@@ -153,7 +155,7 @@ export default function MusicPlayer({
     }, [track, onNext, onPrev]);
 
     if (!track) return <div className="muted">No track selected.</div>;
-    const progress = dur ? pos / dur : 0;
+    const progress = dur > 0 ? (pos / dur) * 100 : 0;
 
     const cycleTo = () => {
         const cycleOrder = ["normal", "repeat-one", "shuffle", "repeat-all"];
@@ -219,9 +221,16 @@ export default function MusicPlayer({
                         <FaHeart color={isFavorite ? "red" : "white"} />
                     </button>
 
-                    <button className="btn" onClick={isPlaying ? onPause : onPlay}>
+                    <button
+                        className="btn play-pause-btn"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            isPlaying ? onPause?.() : onPlay?.();
+                        }}
+                    >
                         {isPlaying ? <FaPause /> : <FaPlay />}
                     </button>
+
                 </div>
             </div>
 
@@ -231,7 +240,7 @@ export default function MusicPlayer({
                 <div className="fp-time-bar-mini" onClick={onSeek}>
                     <div
                         className="fp-time-fill"
-                        style={{ width: `${(pos / dur) * 100}%` }}
+                        style={{ width: `${progress}%` }}
                     />
                 </div>
             </div>

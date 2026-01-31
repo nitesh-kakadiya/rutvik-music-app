@@ -23,6 +23,7 @@
     --nav-height: 70px;
     --mini-height: 68px;
     --bottom-nav-height: 60px;
+    --page-x: 5px;
   }
 
   * {
@@ -202,6 +203,8 @@
   .app {
     max-width: 1440px;
     margin: 0 auto;
+    padding-left: var(--page-x);
+    padding-right: var(--page-x);
   }
 
   .layout {
@@ -283,6 +286,8 @@
     display: flex;
     justify-content: center;
     z-index: 1000;
+    padding-left: var(--page-x);
+    padding-right: var(--page-x);
   }
 
   .navbar {
@@ -298,6 +303,7 @@
     align-items: center;
     z-index: 1000;
     margin: 3px 0;
+
   }
 
   /* NavLink default style */
@@ -871,12 +877,22 @@
     align-items: center;
   }
 
+  .fp-title-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
   .fp-back {
     align-self: flex-start;
     margin-bottom: 10px;
     background: transparent;
     color: white;
     border: none;
+    z-index: 30;
+    position: absolute;
   }
 
   .fp-cover img,
@@ -898,8 +914,9 @@
   }
 
   .fp-info {
-    width: 100%;
-    text-align: start;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .fp-controls {
@@ -974,11 +991,150 @@
 
   .fp-time-fill {
     height: 100%;
-    width: 500px;
+    width: 0%;
+    max-width: 100%;
     background: white;
     border-radius: 4px;
     transition: width 0.2s linear;
   }
+
+
+
+  .fp-next-preview {
+    width: 470px;
+    display: flex;
+    flex-direction: column;
+    padding-left: 5px;
+    border-left: 2px solid rgba(255, 255, 255, 0.15);
+    /* max-width: 160px; */
+  }
+
+  .fp-next-preview .next-label {
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .fp-next-preview .next-title {
+    font-size: 13px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fp-next-preview .next-artist {
+    font-size: 11px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fp-queue {
+    margin-top: 16px;
+    padding: 12px;
+    background: #111;
+    border-radius: 12px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .fp-queue-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    opacity: 0.8;
+  }
+
+  .fp-queue-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .fp-queue-item:last-child {
+    border-bottom: none;
+  }
+
+  .fp-queue-index {
+    opacity: 0.5;
+    width: 20px;
+  }
+
+  .fp-queue-info {
+    overflow: hidden;
+  }
+
+  .fp-queue-name {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .fp-queue-artist {
+    font-size: 12px;
+    opacity: 0.6;
+  }
+
+  .fp-queue-empty {
+    opacity: 0.5;
+    font-size: 13px;
+  }
+
+  .fp-queue-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+  }
+
+  .fp-queue-panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    max-height: 45%;
+    background: #0d0d0d;
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    padding: 14px;
+    overflow-y: auto;
+    z-index: 20;
+  }
+
+
+
+  .fp-open .bottom-nav {
+    display: none;
+  }
+
+
+  .fp-queue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .fp-queue-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    opacity: 0.7;
+    cursor: pointer;
+  }
+
+  .fp-queue-close:hover {
+    opacity: 1;
+  }
+
+
+  .fp-queue-btn {
+    background: transparent;
+    border: none;
+  }
+
+
 
 
   /* =========================
@@ -1025,6 +1181,7 @@
       border: 2px solid #432ecc;
       margin-bottom: 2px;
       z-index: 2000;
+
     }
 
     .card-top {
@@ -1041,10 +1198,10 @@
 
     .sidebar,
     .card-top {
+      width: auto;
       position: fixed;
-      left: 0 !important;
-      right: 0 !important;
-      width: 100vw !important;
+      left: var(--page-x);
+      right: var(--page-x);
     }
 
     /* Hide playlist */
@@ -1211,7 +1368,6 @@
     .nowplaying-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
       flex-shrink: 0;
     }
 
@@ -1219,7 +1375,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 18px;
       background: none;
       border: none;
     }
@@ -1251,9 +1407,9 @@
     .main {
       position: fixed;
       top: 0;
-      left: 0;
-      right: 0;
-
+      left: var(--page-x);
+      right: var(--page-x);
+      width: auto;
       bottom: calc(var(--mini-height) + var(--bottom-nav-height));
       overflow: hidden;
       margin-top: 4px;
@@ -1279,12 +1435,13 @@
     .card-top {
       position: fixed;
       bottom: var(--bottom-nav-height);
-      left: 0;
-      right: 0;
+      left: var(--page-x);
+      right: var(--page-x);
 
       height: var(--mini-height);
       z-index: 4000;
       background: var(--panel);
+      margin-bottom: 7px;
     }
 
     /* Hide playlist */
@@ -1401,18 +1558,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
     }
 
     .bottom-nav {
       position: fixed;
       bottom: 0;
-      left: 0;
-      right: 0;
-
+      left: var(--page-x);
+      right: var(--page-x);
+      border-radius: 12px;
       height: var(--bottom-nav-height);
       z-index: 5000;
       background: #111;
+      border: 2px solid #b2b874;
+      background: rgb(178, 184, 116, 0.15);
+      margin-bottom: 4px;
     }
   }
 
@@ -1476,7 +1635,7 @@
 
     /* leave space for bottom bar */
     .main {
-      width: 100%;
+      width: auto;
     }
 
     .main-content {
