@@ -200,7 +200,7 @@ export default function FullPlayer({
                 </button>
             </div>
 
-            <div>
+            <div className="fp-preview">
                 {/* 🎶 NEXT IN QUEUE (Display only) */}
                 {nextTrack && (
                     <div className="fp-next-preview">
