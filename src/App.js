@@ -155,6 +155,14 @@ export default function App() {
   );
 
 
+  const buildNormalQueue = useCallback((startIndex) => {
+    if (!currentQueue.length) return [];
+
+    return currentQueue.slice(startIndex + 1);
+  }, [currentQueue]);
+
+
+
   const playNext = useCallback(() => {
     if (!currentQueue.length) return;
     window._autoplayFlag = true;
@@ -187,11 +195,17 @@ export default function App() {
         );
       }
     } else {
-      setCurrentIndex(prev => (prev + 1) % currentQueue.length);
+      setCurrentIndex(prev => {
+        const next = (prev + 1) % currentQueue.length;
+
+        // ✅ NORMAL MODE QUEUE UPDATE
+        setUpcomingQueue(buildNormalQueue(next));
+        return next;
+      });
     }
 
     seekRef.current = 0;
-  }, [mode, currentQueue]);
+  }, [mode, currentQueue, buildNormalQueue]);
 
 
   const playFromUpcomingQueue = useCallback((clickedIndex) => {
@@ -312,6 +326,14 @@ export default function App() {
     }
 
   }, [currentTrack?.id]);
+
+
+  useEffect(() => {
+    if (mode === "shuffle") return;
+    if (currentIndex == null) return;
+
+    setUpcomingQueue(buildNormalQueue(currentIndex));
+  }, [currentIndex, mode, buildNormalQueue]);
 
 
   useEffect(() => {
