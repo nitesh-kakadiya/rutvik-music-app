@@ -40,6 +40,7 @@ export default function SongCard({
                         text={track?.artist || ""}
                         speed={20}
                         gap={48}
+                        className="artist-text"
                     />
                 </Link>
             </div>

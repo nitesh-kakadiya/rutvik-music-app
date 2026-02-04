@@ -679,6 +679,12 @@
     color: white;
   }
 
+  .artist-text .marquee-item {
+    font-size: 13px;
+    color: #b3b3b3;
+    font-weight: 400;
+  }
+
   .marquee-gap {
     display: inline-block;
     width: var(--marquee-gap, 48px);

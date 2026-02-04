@@ -133,7 +133,7 @@ export default function FullPlayer({
                 {/* Title & Artist */}
                 <div className="fp-info">
                     <MarqueeText text={track.title} speed={20} gap={48} />
-                    <MarqueeText text={track.artist} speed={20} gap={48} />
+                    <MarqueeText className="artist-text" text={track.artist} speed={20} gap={48} />
                 </div>
                 <div>
                     <button

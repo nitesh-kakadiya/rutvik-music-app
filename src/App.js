@@ -55,6 +55,7 @@ export default function App() {
   const [mode, setMode] = useState(() => {
     return localStorage.getItem("last_mode") || "normal";
   });
+
   const [playlists, setPlaylists] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("playlists_v1")) || {
@@ -64,9 +65,9 @@ export default function App() {
       return { "Liked Songs": [] };
     }
   });
+
   const [activePlaylist, setActivePlaylist] = useState("Liked Songs");
   const playlist = playlists[activePlaylist] || [];
-
 
   const createPlaylist = (name) => {
     if (!name || playlists[name]) return;
@@ -95,8 +96,8 @@ export default function App() {
     }
   };
 
-
   const navigate = useNavigate();
+
 
 
   useEffect(() => {
@@ -160,7 +161,6 @@ export default function App() {
 
     return currentQueue.slice(startIndex + 1);
   }, [currentQueue]);
-
 
 
   const playNext = useCallback(() => {
@@ -229,6 +229,7 @@ export default function App() {
     setUpcomingQueue(
       playQueueRef.current.map(i => currentQueue[i])
     );
+
   }, [upcomingQueue, currentQueue]);
 
 
@@ -309,7 +310,11 @@ export default function App() {
         setIsPlaying(false);
       },
 
-      onend: () => handleEnded(),
+      onend: () => {
+        window._autoplayFlag = true;   // 🔥 force autoplay
+        handleEnded();
+      },
+
     });
 
 
@@ -321,9 +326,15 @@ export default function App() {
     }
 
     if (window._autoplayFlag) {
-      h.play();
-      window._autoplayFlag = false;
+      const tryPlay = () => {
+        h.play();
+        window._autoplayFlag = false;
+      };
+
+      // mobile browsers sometimes need small delay
+      setTimeout(tryPlay, 0);
     }
+
 
   }, [currentTrack?.id]);
 
@@ -390,6 +401,28 @@ export default function App() {
   useEffect(() => {
     console.log("👀 UPCOMING UI QUEUE:", upcomingQueue.map(s => s.title));
   }, [upcomingQueue]);
+
+
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+
+    navigator.mediaSession.setActionHandler("nexttrack", () => {
+      playNext();
+    });
+
+    navigator.mediaSession.setActionHandler("previoustrack", () => {
+      playPrev();
+    });
+
+    navigator.mediaSession.setActionHandler("play", () => {
+      play();
+    });
+
+    navigator.mediaSession.setActionHandler("pause", () => {
+      pause();
+    });
+
+  }, [playNext, playPrev, play, pause]);
 
 
 
@@ -484,8 +517,8 @@ export default function App() {
               onNext={playNext}
               onPrev={playPrev}
               playlist={playlist}
-              onAddToPlaylist={(track) => setPickerTrack(track)}
-              onRemoveFromPlaylist={removeFromPlaylist}
+              onAddToPlaylist={(track) => addToPlaylist(track, "Liked Songs")}
+              onRemoveFromPlaylist={(id) => removeFromPlaylist(id, "Liked Songs")}
               mode={mode}
               setMode={setMode}
               isOpen={isPlayerExpanded}
