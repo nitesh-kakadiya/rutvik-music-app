@@ -311,9 +311,17 @@ export default function App() {
       },
 
       onend: () => {
-        window._autoplayFlag = true;   // 🔥 force autoplay
+        window._autoplayFlag = true;
+
+        if (mode === "repeat-one") {
+          howlerRef.current.seek(0);
+          howlerRef.current.play();
+          return;
+        }
+
         handleEnded();
-      },
+      }
+
 
     });
 
@@ -325,15 +333,13 @@ export default function App() {
       h.seek(seekRef.current);
     }
 
-    if (window._autoplayFlag) {
-      const tryPlay = () => {
+    h.once("load", () => {
+      if (window._autoplayFlag) {
         h.play();
         window._autoplayFlag = false;
-      };
+      }
+    });
 
-      // mobile browsers sometimes need small delay
-      setTimeout(tryPlay, 0);
-    }
 
 
   }, [currentTrack?.id]);
@@ -355,7 +361,7 @@ export default function App() {
     const rebuilt = Array.from(
       { length: currentQueue.length },
       (_, i) => i
-    );
+    ).filter(i => i !== currentIndex);
 
     for (let i = rebuilt.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
