@@ -372,6 +372,8 @@
 
   .search .btn {
     padding: .55rem 1rem;
+    margin-left: 10px;
+    font-size: 14px;
     color: #ff4da6;
     border: 2px solid #ff4da6;
     background: rgba(158, 93, 125, 0.15);
@@ -1008,14 +1010,33 @@
 
   .fp-preview {
     width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+  }
+
+  .speed-btn {
+    flex: 0 0 50;
+    width: 50px;
+    height: 50px;
+    font-size: 15px;
+    text-align: center;
+    padding: 5px;
+    color: yellow;
+    border: 2px solid blue !important;
+    background: rgba(255, 77, 166, 0.20) !important;
   }
 
   .fp-next-preview {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    padding-left: 5px;
+    padding-left: 8px;
     border-left: 2px solid rgba(255, 255, 255, 0.15);
   }
+
 
   .fp-next-preview .next-label {
     font-size: 11px;
@@ -1141,6 +1162,8 @@
     background: transparent;
     border: none;
   }
+
+
 
 
 

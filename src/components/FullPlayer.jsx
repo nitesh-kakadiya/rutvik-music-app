@@ -42,11 +42,23 @@ export default function FullPlayer({
     onRemoveFromPlaylist,
     mode,
     setMode,
+    playbackRate,
+    setPlaybackRate
 }) {
 
     const [pos, setPos] = useState(0);
     const [dur, setDur] = useState(0);
     const [showQueue, setShowQueue] = useState(false);
+
+
+    const cycleSpeed = () => {
+        const speeds = [0.5, 0.75, 0.85, 1, 1.15, 1.25, 1.5, 2];
+        const next =
+            speeds[(speeds.indexOf(playbackRate) + 1) % speeds.length];
+        setPlaybackRate(next);
+    };
+
+    console.log("playbackRate - ", playbackRate);
 
 
 
@@ -210,6 +222,14 @@ export default function FullPlayer({
                         <div className="next-artist">{nextTrack.artist}</div>
                     </div>
                 )}
+
+                <button
+                    className="btn speed-btn"
+                    onClick={cycleSpeed}
+                >
+                    {playbackRate}x
+                </button>
+
             </div>
 
             <AnimatePresence>

@@ -51,6 +51,8 @@ export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeQueue, setActiveQueue] = useState("all");
   const [volume, setVolume] = useState(0.9);
+  const [playbackRate, setPlaybackRate] = useState(1);
+
 
   const [mode, setMode] = useState(() => {
     return localStorage.getItem("last_mode") || "normal";
@@ -297,6 +299,7 @@ export default function App() {
       src: [currentTrack.url],
       html5: true,
       volume: volume,
+      rate: playbackRate, // 🔥 SPEED
 
       onplay: () => {
         setIsPlaying(true);
@@ -351,6 +354,14 @@ export default function App() {
 
     setUpcomingQueue(buildNormalQueue(currentIndex));
   }, [currentIndex, mode, buildNormalQueue]);
+
+
+  useEffect(() => {
+    if (howlerRef.current) {
+      howlerRef.current.rate(playbackRate);
+    }
+  }, [playbackRate]);
+
 
 
   useEffect(() => {
@@ -514,6 +525,8 @@ export default function App() {
             <FullPlayer
               track={currentTrack}
               nextTrack={upcomingQueue[0]}
+              playbackRate={playbackRate}
+              setPlaybackRate={setPlaybackRate}
               queue={currentQueue}
               upcomingQueue={upcomingQueue}
               onPlayFromQueue={playFromUpcomingQueue}
