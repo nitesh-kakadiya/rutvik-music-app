@@ -1,7 +1,6 @@
 // src/App.jsx
 import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Howl } from "howler";
 
 import Navbar from "./components/Navbar";
@@ -20,7 +19,7 @@ import FullPlayer from "./components/FullPlayer";
 import MyPlaylistHome from "./pages/MyPlaylistHome";
 import MyPlaylistDetail from "./pages/MyPlaylistDetail";
 import PlaylistPicker from "./components/PlaylistPicker";
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 
 // auto import songs
 function importAll(r) {
@@ -79,6 +78,31 @@ export default function App() {
       [name]: []
     }));
   };
+
+
+  useEffect(() => {
+    const raw = localStorage.getItem("player_state_v1");
+    if (!raw) return;
+
+    try {
+      const state = JSON.parse(raw);
+
+      setActiveQueue(state.activeQueue || "all");
+      setActivePlaylist(state.activePlaylist || "Liked Songs");
+      setMode(state.mode || "normal");
+      setVolume(state.volume ?? 0.9);
+
+      // restore index AFTER queue ready
+      setTimeout(() => {
+        setCurrentIndex(state.currentIndex ?? 0);
+        seekRef.current = state.seek || 0;
+      }, 0);
+
+    } catch (e) {
+      console.error("Failed to restore player state", e);
+    }
+  }, []);
+
 
 
   const deletePlaylist = (name) => {
@@ -175,7 +199,7 @@ export default function App() {
         const rebuilt = Array.from(
           { length: currentQueue.length },
           (_, i) => i
-        )
+        ).filter(i => i !== currentIndex);
 
         // shuffle
         for (let i = rebuilt.length - 1; i > 0; i--) {
@@ -440,6 +464,46 @@ export default function App() {
     });
 
   }, [playNext, playPrev, play, pause]);
+
+
+  useEffect(() => {
+    const h = window._howlerRef?.();
+    if (!h || !currentTrack) return;
+
+    const saveState = () => {
+      const state = {
+        trackId: currentTrack.id,
+        currentIndex,
+        activeQueue,
+        seek: h.seek() || 0,
+        volume,
+        mode,
+        activePlaylist
+      };
+
+      localStorage.setItem("player_state_v1", JSON.stringify(state));
+    };
+
+    // save every 2 seconds
+    const interval = setInterval(saveState, 2000);
+
+    // save on tab close
+    window.addEventListener("beforeunload", saveState);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("beforeunload", saveState);
+    };
+  }, [
+    currentTrack,
+    currentIndex,
+    activeQueue,
+    volume,
+    mode,
+    activePlaylist
+  ]);
+
+
 
 
 

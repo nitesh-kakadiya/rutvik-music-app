@@ -58,7 +58,6 @@ export default function FullPlayer({
         setPlaybackRate(next);
     };
 
-    console.log("playbackRate - ", playbackRate);
 
 
 
